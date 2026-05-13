@@ -221,3 +221,7 @@ __marimo__/
 **/*.7z
 
 **/.DS_Store
+
+data/commits.csv
+data/repos*
+**/*.jsonl
