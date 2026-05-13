@@ -225,3 +225,10 @@ __marimo__/
 data/commits.csv
 data/repos*
 **/*.jsonl
+
+data/pr_comments_combined.csv
+data/pr_commit_details_combined.csv
+data/pr_commits_combined.csv
+data/pr_reviews_combined.csv
+data/pr_timeline_combined.csv
+data/pull_request_combined.csv
