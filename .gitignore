@@ -226,9 +226,12 @@ data/commits.csv
 data/repos*
 **/*.jsonl
 
+data/repos
+data/repo_snapshot
 data/pr_comments_combined.csv
 data/pr_commit_details_combined.csv
 data/pr_commits_combined.csv
 data/pr_reviews_combined.csv
 data/pr_timeline_combined.csv
 data/pull_request_combined.csv
+data/context_files_commits_metadata.csv

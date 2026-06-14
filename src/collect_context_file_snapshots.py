@@ -15,13 +15,13 @@ load_dotenv()
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / "data"
 CSV_PATH = DATA_DIR / "context_files_subset.csv"
-OUTPUT_BASE_DIR = DATA_DIR / "repo_snapshot_new"
+OUTPUT_BASE_DIR = DATA_DIR / "repo_snapshot"
 METADATA_OUTPUT_CSV = DATA_DIR / "context_files_commits_metadata.csv" 
 
 # Progress file tracker path
 PROGRESS_TRACKER_TXT = DATA_DIR / "processed_instances.txt"
 
-GITHUB_TOKEN = os.getenv("TOKEN_1_JAPAN_PROJECT")
+GITHUB_TOKEN = os.getenv("TOKEN_2_JAPAN_PROJECT")
 REQUEST_DELAY = 0.8 
 
 logging.basicConfig(
@@ -124,22 +124,45 @@ def get_single_commit_details(repo_full_name, sha, file_path, repo_name):
         return extract_commit_metadata(response.json(), file_path, repo_name)
     return None
 
-def get_file_sha_list_in_range(repo_full_name, file_path, first_sha, last_sha):
+def get_all_file_shas_up_to_date(repo_full_name, file_path, first_sha=None):
+    """Fetches all commits for a file up to a specific date, handling API pagination."""
     url = f"https://api.github.com/repos/{repo_full_name}/commits"
     headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
-    params = {"path": file_path, "sha": last_sha}
+    
+    # Set the cutoff date specifically to June 11, 2026 (End of day UTC)
+    cutoff_iso = "2026-06-11T23:59:59Z"
+    
+    params = {
+        "path": file_path, 
+        "until": cutoff_iso,
+        "per_page": 100  # Maximize items per page to reduce API calls
+    }
     
     shas = []
-    response = safe_request(url, headers=headers, params=params)
-    time.sleep(REQUEST_DELAY)
     
-    if response and response.status_code == 200:
-        all_commits = response.json()
-        for c in all_commits:
-            sha = c['sha']
-            shas.append(sha)
-            if sha == first_sha:
-                break
+    while url:
+        response = safe_request(url, headers=headers, params=params)
+        time.sleep(REQUEST_DELAY)
+        
+        if response and response.status_code == 200:
+            all_commits = response.json()
+            for c in all_commits:
+                sha = c['sha']
+                shas.append(sha)
+                
+                # Stop if we reach the earliest known commit for this file
+                if first_sha and sha == first_sha:
+                    return shas
+            
+            # Handle Pagination: check if there's a next page of commits
+            if 'next' in response.links:
+                url = response.links['next']['url']
+                params = None  # Clear params as they are embedded in the pagination URL
+            else:
+                url = None
+        else:
+            break
+            
     return shas
 
 def fetch_and_save_snapshot(repo_full_name, file_path, meta, repo_name):
@@ -185,10 +208,11 @@ def main():
     # 2. Outer Progress Bar setup via tqdm
     for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing Repository File Targets"):
         repo_full_name = get_repo_full_name(row['github_link'])
-        first_sha = row['first_commit_sha']
-        last_sha = row['last_commit_sha']
         file_path = row['context_file']
         repo_name = row['repo_name']
+        
+        # We optionally keep first_sha to bound how far back we go.
+        first_sha = row.get('first_commit_sha') 
 
         if not repo_full_name:
             continue
@@ -198,10 +222,8 @@ def main():
         if instance_key in processed_instances:
             continue # Safe resume skip
 
-        if first_sha == last_sha:
-            shas_to_process = [first_sha]
-        else:
-            shas_to_process = get_file_sha_list_in_range(repo_full_name, file_path, first_sha, last_sha)
+        # Fetch all SHAs backward from the June 11, 2026 cutoff date
+        shas_to_process = get_all_file_shas_up_to_date(repo_full_name, file_path, first_sha)
 
         instance_metadata_rows = []
         

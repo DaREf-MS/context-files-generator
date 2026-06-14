@@ -18,10 +18,13 @@ DATA_DIR = ROOT_DIR / 'data'
 DATA_DIR.mkdir(exist_ok=True)
 
 INPUT_FILE = DATA_DIR / "configured_repos.csv"
-END_DATE = "2026-03-30"
+
+# Updated Date Range
+START_DATE = "2026-03-30"
+END_DATE = "2026-06-11"
 
 AGENT_CONFIG = {
-    # Updated to capture BOTH the old and new Claude signatures
+    # Start dates here are kept for historical reference, but the script now uses the global START_DATE
     'claude':  {'query': '"Co-Authored-By: Claude" OR "Generated with Claude Code"', 'start_date': '2025-02-24'},
     'codex':   {'query': 'head:codex/', 'start_date': '2025-05-16'},
     'copilot': {'query': 'head:copilot/', 'start_date': '2025-01-01'},
@@ -176,8 +179,8 @@ def process_agent_prs(repo_name, agent_name, config, headers, logger, writer):
     
     pr_count = 0
     
-    # Date Chunking Implementation to bypass 1000 PR limit
-    start_dt = datetime.strptime(config['start_date'], "%Y-%m-%d")
+    # Date Chunking Implementation using global START_DATE and END_DATE
+    start_dt = datetime.strptime(START_DATE, "%Y-%m-%d")
     end_dt = datetime.strptime(END_DATE, "%Y-%m-%d")
     current_dt = start_dt
     

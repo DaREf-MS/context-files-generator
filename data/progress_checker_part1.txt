@@ -10,6 +10,7 @@ clickhouse/clickhouse_copilot
 clickhouse/clickhouse_cursor
 dimagi/commcare-hq_claude
 mantidproject/mantid_copilot
+microsoft/vscode_copilot
 dotnet/runtime_copilot
 dotnet/roslyn_copilot
 saltstack/salt_claude
@@ -43,7 +44,6 @@ umbraco/umbraco-cms_claude
 umbraco/umbraco-cms_copilot
 zulip/zulip_claude
 htcondor/htcondor_copilot
-grafana/grafana_claude
 growilabs/growi_claude
 canonical/snapd_copilot
 grpc/grpc_gemini
@@ -191,6 +191,7 @@ youtrackdb/youtrackdb_claude
 pulp/pulpcore_claude
 openl-tablets/openl-tablets_claude
 automattic/mongoose_copilot
+StarRocks/starrocks_claude
 StarRocks/starrocks_copilot
 milvus-io/milvus_claude
 microsoft/fluidframework_claude
@@ -245,6 +246,7 @@ cloudquery/cloudquery_claude
 cloudquery/cloudquery_copilot
 facebook/react_claude
 cloudera/hue_cursor
+continuedev/continue_claude
 openvinotoolkit/openvino_copilot
 AztecProtocol/aztec-packages_claude
 habitat-sh/habitat_copilot
@@ -414,6 +416,7 @@ netbox-community/netbox_claude
 openwebf/webf_claude
 openwebf/webf_codex
 thematters/matters-web_cursor
+coollabsio/coolify_claude
 coollabsio/coolify_codex
 coollabsio/coolify_cursor
 delmic/odemis_copilot
@@ -749,11 +752,11 @@ astral-sh/uv_claude
 saulpw/visidata_claude
 nextcloud/news_copilot
 azure/aro-rp_claude
-azuread/microsoft-authentication-library-common-for-android_copilot
 apache/skywalking_claude
 mozilla/bigquery-etl_claude
 tikv/tikv_claude
 microsoft/buildxl_copilot
+dotnet/arcade_copilot
 axkr/symja_android_library_copilot
 openshift/microshift_claude
 eclipse-theia/theia_claude
@@ -1110,6 +1113,7 @@ jbx-protocol/juice-interface_copilot
 uniswap/interface_claude
 chakra-ui/ark_claude
 chakra-ui/ark_cursor
+Helicone/helicone_claude
 Helicone/helicone_copilot
 Helicone/helicone_cursor
 cockroachdb/pebble_claude
@@ -1184,6 +1188,7 @@ apify/crawlee_claude
 opendatahub-io/odh-dashboard_claude
 automattic/simplenote-android_claude
 getsentry/sentry-release-registry_cursor
+hyperlane-xyz/hyperlane-monorepo_claude
 hyperlane-xyz/hyperlane-monorepo_codex
 hyperlane-xyz/hyperlane-monorepo_cursor
 apicurio/apicurio-registry_claude
@@ -1373,6 +1378,7 @@ feast-dev/feast_claude
 ssvlabs/ssv_claude
 ssvlabs/ssv_cursor
 deepset-ai/haystack_claude
+ddev/ddev_claude
 ddev/ddev_copilot
 pnp/cli-microsoft365_copilot
 openshift-assisted/assisted-installer-ui_cursor
@@ -1424,6 +1430,7 @@ loft-sh/vcluster_claude
 bootc-dev/bootc_claude
 bootc-dev/bootc_gemini
 dlt-hub/dlt_claude
+AstrBotDevs/AstrBot_copilot
 Skyvern-AI/skyvern_claude
 chroma-core/chroma_claude
 jaegertracing/jaeger_claude
@@ -1512,7 +1519,6 @@ johnbillion/query-monitor_claude
 jsdom/jsdom_claude
 getsentry/sentry-dotnet_claude
 getsentry/sentry-dotnet_copilot
-juanfont/headscale_claude
 dhi/modelskill_claude
 madfish-solutions/templewallet-extension_claude
 fledge-iot/fledge-gui_cursor
@@ -1762,6 +1768,7 @@ jepegit/cellpy_cursor
 freenet/river_claude
 oracle/weblogic-deploy-tooling_claude
 hayes/pothos_claude
+hepdata/hepdata_copilot
 esp-rs/esp-hal_copilot
 redhat-best-practices-for-k8s/certsuite_claude
 deepspeedai/DeepSpeed_claude
@@ -1797,6 +1804,7 @@ jaseci-labs/jaseci_copilot
 subquery/subql_claude
 obot-platform/obot_claude
 celestiaorg/celestia-node_claude
+livestorejs/livestore_claude
 livestorejs/livestore_cursor
 jasperfx/wolverine_claude
 syncloud/platform_claude

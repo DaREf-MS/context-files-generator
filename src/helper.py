@@ -122,3 +122,19 @@ def mannUandCliffdelta(dist1, dist2):
     u, p = stats.mannwhitneyu(dist1, dist2, alternative="two-sided")
     print(f"Mann-Whitney-U-test: u={u} p={p}")
     return u, p, d, size
+
+def load_jsonl_to_df(file_path):
+    """Reads a JSONL file and returns a pandas DataFrame."""
+    import pandas as pd
+
+    if type(file_path) is str:
+        pass
+    elif not file_path.exists():
+        return pd.DataFrame()
+    
+    records = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            if line.strip():
+                records.append(json.loads(line))
+    return pd.DataFrame(records)
