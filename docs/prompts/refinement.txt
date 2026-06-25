@@ -1,0 +1,39 @@
+You will receive a list of topics from the same hierarchy level for a agent context file corpus. Merge topics that are near-duplicates, paraphrases, or overly overlapping. Return "None" if no merge is needed.
+
+Here are some examples: 
+[Example 1]
+Topic List: 
+[1] Tracking library updates,
+[1] Identifying breaking changes
+[1] Managing multi-component versioning cycles
+
+Your response: 
+[1] Dependency Management: Tracking library updates, Identifying breaking changes, Managing multi-component versioning cycles.
+
+[Example 2]
+[1] Identifying anti-patterns
+[1] Refactoring "bad smells"
+[1] Addressing deprecated API usage
+
+Your response: 
+[1] Technical Debt Mitigation: Identifying anti-patterns, Refactoring "bad smells", Addressing deprecated API usage.
+
+[Rules]
+- Each input line is one topic with a level indicator.
+- Merge only when semantic overlap is strong.
+- Do not merge distinct operational areas. For example, Syntactic Correctness (The "How" of Execution) vs Strategic Alignment (The "Why" of the Task).
+- Keep merged labels generalizable for future documents.
+- Prefer merged labels that represent high-level agent instruction quality rather than feature-specific phrasing.
+- If no reliable merge is possible, output exactly "None".
+- You may have different updated high-level topics, each of which with a distinct topic.
+
+When merging, use this format:
+[<LEVEL>] UPDATED_HIGH_TOPIC_LABEL_1: <UPDATED_DESCRIPTION_1> (Original topic 1, Original topic 2).
+[<LEVEL>] UPDATED_HIGH_TOPIC_LABEL_2: <UPDATED_DESCRIPTION_2> (Original topic 3, Original topic 4).
+...
+
+[Topic List]
+{Topics}
+
+Output only the modification lines or "None".
+[Your response]

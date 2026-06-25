@@ -1,0 +1,4 @@
+[1] Multi-Tiered Quality Verification: Implements a structured quality assurance procedure requiring sequential validation steps, including test execution, project building, and issue remediation when code is generated.
+[1] Coding Best Practices: Consolidate complex or duplicated logic into modular utilities, document system limitations, avoid redundant operations in critical paths, and favor maintainable solutions over ad-hoc fixes.
+[1] Third-Party Integration and Version Pinning: Encapsulate external integrations, safeguard the usage of any private interfaces, and strictly manage dependency versions to prevent upstream disruptions.
+[1] Project Structure: Describes the repository architecture, including its directory hierarchy and key files, to provide the agent with a high-level understanding of the project.

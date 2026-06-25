@@ -1,0 +1,86 @@
+You will receive a agent instruction-related document and a topic hierarchy. Assign the document to **ALL** the relevant high-level topics in the hierarchy. Then, output the topic labels, assignment reasoning and supporting quotes from the document. An instruction is an explicit directive or contextual information that helps a coding agent perform its assigned tasks. Instructions guide the agent in collecting relevant information, making decisions, and carrying out its work within a repository by specifying expected behaviors, constraints, or procedures. DO NOT make up new topics or quotes.  
+
+[Topic Hierarchy]
+{tree}
+
+[Examples]
+
+Example 1
+
+Document:
+## Commands
+
+### Build
+```bash
+npm run build              # Build all (chat, core, react)
+npm run build:chat         # Main chat bundle
+npm run build:core         # Core SDK (no React)
+npm run build:react        # React bindings
+```
+
+### Test
+```bash
+npm test                   # All tests with coverage
+npm run test:chat          # Core tests only (vitest project: "chat")
+npm run test:react         # React tests only (vitest project: "react-hooks")
+npm run test:unit          # All tests excluding integration
+npm run test:chat-unit     # Core unit tests only
+npm run test:react-unit    # React unit tests only
+npm run test:typescript    # Type-check only (no tests)
+npm run test:watch         # Watch mode
+
+Assignment:
+[1] Build and Test Orchestration: Focuses on providing granular control over the development lifecycle ("To verify just the React components without running the full suite, use `npm run test:react-unit`")
+
+Example 2
+
+Document:
+# GitHub Trigger Properties Panel — State Model (for Agents)
+
+- Target file: `github-trigger-properties-panel.tsx`
+- Location: `internal-packages/workflow-designer-ui/src/editor/properties-panel/trigger-node-properties-panel/providers/github-trigger/`
+
+## States
+- Node state: - `configured`:...
+
+## Runtime Enable/Disable
+- Implemented via `useGitHubTrigger(flowTriggerId)`:
+  - Exposes `enableFlowTrigger` / `disableFlowTrigger` which patch `enable` with optimistic updates.
+
+## Code Map (quick references)
+- Panel entry and integration...
+  - Unauthorized: `components/unauthorized.tsx`
+  - Not installed: `components/install-application.tsx`
+- Wizard steps:
+  - Event selection: `components/event-selection-step.tsx`
+- Helpers:
+  - Event builder: `createTriggerEvent()` in `./utils/trigger-configuration`.
+- State tracking: `isReconfiguring` constant...
+- Post-setup configured view: `../../ui/configured-views` → `GitHubTriggerConfiguredView`.
+- Node badge (enabled/disabled): `node/ui/github-trigger/status-badge.tsx` using `useGitHubTrigger`.
+
+## Acceptance Hints (for testing)
+- Enabling/disabling reflects in status badge without full reload (optimistic UI).
+
+Assignment: 
+[1] Project Structure: Maps the feature to exact component boundaries, helping an agent understand the overall architecture. (Quotes: "Target file: `github-trigger-properties-panel.tsx`", "Code Map (quick references)", and internal path references).
+[2] Coding Best Practices: Details the state model and runtime behavior, providing guidance on state management and rendering. (Quotes: "Node state: - `configured`", "State tracking", "optimistic updates", "without full reload (optimistic UI)").
+
+[Instructions]
+1. You must assign **ALL** relevant high-level topics that exist in the provided hierarchy.
+2. Supporting quotes MUST appear in the document.
+3. Remove hallucinated topics, malformed entries, or unsupported claims.
+4. Keep only relevant assignments.
+5. If no valid assignment is possible, return "None".
+6. Prioritize abstract topics that are relevant to how the agent is instructed.
+
+[Document]
+{Document}
+
+{Message} Double check that your assignment exists in the hierarchy!
+Your response should include all topics, when possible, following this format:
+[<LEVEL>] <HIGH_TOPIC_LABEL_1>: <ASSIGNMENT_REASONING_1> (<BRIEF_SUPPORTING_QUOTE_1>).
+[<LEVEL>] <HIGH_TOPIC_LABEL_2>: <ASSIGNMENT_REASONING_2> (<BRIEF_SUPPORTING_QUOTE_2>).
+...
+
+Your response:

@@ -1,0 +1,93 @@
+You will receive an instruction file (e.g., AGENTS.md) that guides the coding agents in navigating different resources of a software project and a set of high-level topics from a topic hierarchy. Your task is to identify **ALL** GENERALIZABLE and HIGH-LEVEL topics mentioned in the the instruction file. Prioritize abstract topics that are relevant to how the agent is explicitly instructed. If a relevant topic already exists, return the existing topic. If it is missing, add a new high-level topic. An instruction is an explicit directive or contextual information that helps a coding agent perform its assigned tasks. Instructions guide the agent in collecting relevant information, making decisions, and carrying out its work within a repository by specifying expected behaviors, constraints, or procedures.
+
+[High-level topics]
+{Topics}
+
+[Examples]
+
+Example 1: Adding a new topic
+
+Document: 
+## Repository Structure
+
+```
+libaaruformat/
+├── include/           # Public and internal headers
+│   ├── aaru.h         # Main public API header
+│   ├── aaruformat.h   # Format-specific public header
+│   └── aaruformat/    # Detailed headers (structs, enums, etc.)
+├── src/               # Source files
+│   ├── blocks/        # Block-level read/write operations
+│   ├── checksum/      # Checksum implementations (MD5, SHA1, SHA256, SpamSum)
+│   ├── compression/   # Compression (LZMA, FLAC, CST)
+│   ├── crc64/         # CRC64 with SIMD optimizations
+│   ├── ddt/           # Deduplication table handling
+│   └── index/         # Index structures for V1/V2/V3
+├── tests/             # Unit tests using Google Test
+├── tool/              # Command-line tool (aaruformattool)
+├── 3rdparty/          # Third-party dependencies (BLAKE3, FLAC, LZMA, xxHash, uthash)
+├── docs/              # Documentation and format specification
+└── runtimes/          # Pre-built binaries for NuGet package
+```
+
+Your response: 
+[1] Project Structure: The context file provides a comprehensive overview of the repository tree, including all folders, subfolders, and associated files.
+
+Example 2: Returning the existing topic
+
+Document:
+# GitHub Trigger Properties Panel — State Model (for Agents)
+
+- Target file: `github-trigger-properties-panel.tsx`
+- Location: `internal-packages/workflow-designer-ui/src/editor/properties-panel/trigger-node-properties-panel/providers/github-trigger/`
+
+## States
+- Node state: - `configured`:...
+
+## Runtime Enable/Disable
+- Implemented via `useGitHubTrigger(flowTriggerId)`:
+  - Exposes `enableFlowTrigger` / `disableFlowTrigger` which patch `enable` with optimistic updates.
+
+## Code Map (quick references)
+- Panel entry and integration...
+  - Unauthorized: `components/unauthorized.tsx`
+  - Not installed: `components/install-application.tsx`
+- Wizard steps:
+  - Event selection: `components/event-selection-step.tsx`
+- Helpers:
+  - Event builder: `createTriggerEvent()` in `./utils/trigger-configuration`.
+- State tracking: `isReconfiguring` constant...
+- Post-setup configured view: `../../ui/configured-views` → `GitHubTriggerConfiguredView`.
+- Node badge (enabled/disabled): `node/ui/github-trigger/status-badge.tsx` using `useGitHubTrigger`.
+
+## Acceptance Hints (for testing)
+- Enabling/disabling reflects in status badge without full reload (optimistic UI).
+
+Your response: 
+[1] Project Structure: Maps the feature to exact component boundaries, helping an agent understand the overall architecture. (Quotes: "Target file: `github-trigger-properties-panel.tsx`", "Code Map (quick references)", and internal path references).
+[2] Coding Best Practices: Details the state model and runtime behavior, providing guidance on state management and rendering. (Quotes: "Node state: - `configured`", "State tracking", "optimistic updates", "without full reload (optimistic UI)").
+
+[Instructions]
+Step 1: Determine the high-level topics mentioned in the context file. 
+- Topics must be broad and reusable across many context files.
+- Prioritize topics that are directly relevant to the agent's behavior, responsibilities, and operational guidance.
+- Ensure all instructions are explicit, unambiguous, and clearly stated.
+- Each topic must represent a SINGLE agent-related instruction instead of a mix of topics.
+- Avoid document-specific details (function names, framework names, design patterns)
+- The new topics must have a level number, a short broad label, and a concise topic description.
+- Reason step-by-step before assigning a topic to the context file.
+
+Step 2: Perform ONE of the following operations: 
+1. If duplicate or clearly relevant topics already exist in the hierarchy, output that existing topics and stop.
+2. If the document has no meaningful agent instruction quality topic, return "None".
+3. Otherwise, add new high-level topics and stop. DO NOT add additional hierarchy levels.
+
+[Document]
+{Document}
+
+Please ONLY return **ALL** relevant or modified high-level topics from the provided instruction file.
+[<LEVEL>] <HIGH_TOPIC_LABEL_1>: <TOPIC_DESCRIPTION_1> (<BRIEF_SUPPORTING_QUOTE_1>).
+[<LEVEL>] <HIGH_TOPIC_LABEL_2>: <TOPIC_DESCRIPTION_2> (<BRIEF_SUPPORTING_QUOTE_2>).
+...
+
+Your response:

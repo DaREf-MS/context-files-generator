@@ -1,0 +1,165 @@
+You will receive a agent instruction-related document and a topic hierarchy. Assign the document to **ALL** the relevant high-level topic(s) in the hierarchy based on the underlying HIGH-LEVEL agent-related instructions. Then output the topic label(s), concise reasoning, and supporting quote(s) from the document. An instruction is an explicit directive or contextual information that helps a coding agent perform its assigned tasks. Instructions guide the agent in collecting relevant information, making decisions, and carrying out its work within a repository by specifying expected behaviors, constraints, or procedures. DO NOT invent topics or quotes.
+
+[Topic Hierarchy]
+{tree}
+
+[Examples]
+
+Example 1: Assign "[1] Extensible Component Architecture" to the document
+
+Document:
+
+### Generic Client Architecture
+
+The client system uses a generic architecture with provider extensions:
+
+```rust
+pub struct Client<Ext = Nothing, H = reqwest::Client> {
+    // ...
+}
+```
+
+Where `Ext` is a provider extension defining capabilities and `H` is the HTTP backend.
+
+### Capability-Based Providers
+
+Providers declare their capabilities explicitly:
+
+```rust
+impl<H> Capabilities<H> for MyProviderExt {
+    type Completion = Capable<CompletionModel<H>>;  // Supported
+    type Embeddings = Nothing;                       // Not supported
+    // ...
+}
+```
+
+Use `Capable<T>` for supported features and `Nothing` for unsupported ones.
+
+## rig-provider-implementation
+
+Reference implementation: `rig-core/src/providers/openai/` (Chat Completions API)
+
+When implementing a new provider, study the OpenAI Chat Completions implementation thoroughly. It demonstrates the complete pattern including both completion and embedding models.
+
+### Required Components
+
+1. **Provider Extension and Builder Structs**
+   ```rust
+   #[derive(Debug, Default, Clone, Copy)]
+   pub struct MyProviderExt;
+
+   #[derive(Debug, Default, Clone, Copy)]
+   pub struct MyProviderBuilder;
+   ```
+
+2. **Provider Trait Implementation**
+   ```rust
+   impl Provider for MyProviderExt {
+       type Builder = MyProviderBuilder;
+       const VERIFY_PATH: &'static str = "/models";  // Health check endpoint
+
+       fn build<H>(...) -> http_client::Result<Self> {
+           Ok(Self)
+       }
+   }
+   ```
+
+Assignment:
+[1] Extensible Component Architecture: Uses generic types and trait-based extensions to create a "plug-and-play" system that decouples core client logic from specific provider capabilities.
+
+Example 2: Assign "[1] Policy Compliance" to the document
+
+Document:
+## Before Submitting
+
+### Required Checks
+
+Run these commands and fix all issues before submitting:
+
+```bash
+cargo fmt
+cargo clippy --all-targets --all-features
+cargo test
+```
+
+If you cannot run these commands (e.g., environment limitations), explicitly ask the user to run them before the PR is submitted.
+
+### Architectural Changes
+
+If your change involves:
+- New traits or significant trait modifications
+- Changes to the client/provider architecture
+- New abstractions or patterns
+- Breaking changes to public APIs
+
+**Discuss with the user first.** Do not implement major architectural changes without explicit approval. Open an issue for discussion if needed.
+
+### Self-Review Checklist
+
+Before considering code complete:
+
+- [ ] All error cases handled properly (no `.unwrap()` or `.expect()` on fallible operations unless truly impossible)
+- [ ] No `String` error types
+- [ ] No TODO comments
+- [ ] No stubbed implementations
+- [ ] Comments explain "why", not "what"
+- [ ] Uses `WasmCompatSend`/`WasmCompatSync` instead of `Send`/`Sync`
+- [ ] Follows existing code patterns in the codebase
+- [ ] Includes tests or examples that compile
+- [ ] `cargo fmt` passes
+- [ ] `cargo clippy --all-targets --all-features` passes
+- [ ] `cargo test` passes
+
+Assignment: 
+[1] Policy Compliance: The instruction enforces specific "Self-Review" quality standards and adherence to the project's internal coding policies. ("Self-Review Checklist").
+
+Example 3: Assign "[1] Project Navigation\n[1] Coding Best Practices" to the document
+Document:
+# GitHub Trigger Properties Panel — State Model (for Agents)
+
+- Target file: `github-trigger-properties-panel.tsx`
+- Location: `internal-packages/workflow-designer-ui/src/editor/properties-panel/trigger-node-properties-panel/providers/github-trigger/`
+
+## States
+- Node state: - `configured`:...
+
+## Runtime Enable/Disable
+- Implemented via `useGitHubTrigger(flowTriggerId)`:
+  - Exposes `enableFlowTrigger` / `disableFlowTrigger` which patch `enable` with optimistic updates.
+
+## Code Map (quick references)
+- Panel entry and integration...
+  - Unauthorized: `components/unauthorized.tsx`
+  - Not installed: `components/install-application.tsx`
+- Wizard steps:
+  - Event selection: `components/event-selection-step.tsx`
+- Helpers:
+  - Event builder: `createTriggerEvent()` in `./utils/trigger-configuration`.
+- State tracking: `isReconfiguring` constant...
+- Post-setup configured view: `../../ui/configured-views` → `GitHubTriggerConfiguredView`.
+- Node badge (enabled/disabled): `node/ui/github-trigger/status-badge.tsx` using `useGitHubTrigger`.
+
+## Acceptance Hints (for testing)
+- Enabling/disabling reflects in status badge without full reload (optimistic UI).
+
+Your response: 
+[1] Project Structure: Maps the feature to exact component boundaries, helping an agent understand the overall architecture. (Quotes: "Target file: `github-trigger-properties-panel.tsx`", "Code Map (quick references)", and internal path references).
+[2] Coding Best Practices: Details the state model and runtime behavior, providing guidance on state management and rendering. (Quotes: "Node state: - `configured`", "State tracking", "optimistic updates", "without full reload (optimistic UI)").
+
+[Instructions]
+1. You must assign **ALL** relevant high-level topics that exist in the provided hierarchy. You MUST NOT make up new topics. 
+2. Every quote MUST be copied from the document text. You MUST NOT make up quotes. 
+3. Prefer the most specific matching topic level available.
+4. If no topic in the hierarchy is relevant, return "None".
+5. In the reasoning, describe the explicit instructions that the agent is expected to follow.
+
+[Document]
+{Document}
+
+Double check that your assignment exists in the hierarchy!
+Your response should include all topics, when possible, following this format:
+[<LEVEL>] <HIGH_TOPIC_LABEL_1>: <ASSIGNMENT_REASONING_1> (<BRIEF_SUPPORTING_QUOTE_1>)
+[<LEVEL>] <HIGH_TOPIC_LABEL_2>: <ASSIGNMENT_REASONING_2> (<BRIEF_SUPPORTING_QUOTE_2>)
+...
+
+Your response:
