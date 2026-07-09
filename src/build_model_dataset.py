@@ -12,7 +12,7 @@ except ImportError:
 # --- Configuration ---
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / "data"
-README_DIR = ROOT_DIR / "readmes"
+README_DIR = DATA_DIR / "readmes"
 
 # Input Files
 REPO_METRICS_FILE = DATA_DIR / "pre_acf_model_features.csv"
