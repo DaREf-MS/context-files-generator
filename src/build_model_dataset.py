@@ -199,7 +199,7 @@ def main():
     # 1. Load Repo Metrics (Features collected prior to ACF)
     try:
         df_repo = pd.read_csv(REPO_METRICS_FILE)
-        readmes_df = load_readmes_to_dataframe()
+        readmes_df = load_readmes_to_dataframe(README_DIR)
         df_repo = df_repo.merge(readmes_df, on='repo', how='left')
     
         # Select the requested static and pre-calculated repo metrics
