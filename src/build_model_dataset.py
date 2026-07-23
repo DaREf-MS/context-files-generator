@@ -187,10 +187,8 @@ def generate_readme_embeddings(df, text_column='readme_content'):
     """
     print(f"Generating sentence embeddings for `{text_column}`...")
     model = SentenceTransformer('all-MiniLM-L6-v2')
-    
-    descriptions = df[text_column].fillna("").astype(str).tolist()
-    embeddings = model.encode(descriptions, show_progress_bar=True)
-    
+    readme_contents = df[text_column].fillna("").astype(str).tolist()
+    embeddings = model.encode(readme_contents, show_progress_bar=True)
     df['readme_embedding'] = list(embeddings)
     return df
 

@@ -1,0 +1,82 @@
+{\footnotesize
+\begin{longtable}{|p{0.14\linewidth}|p{0.18\linewidth}|p{0.5\linewidth}|r|}
+\hline
+\textbf{Theme} & \textbf{Sub-theme} & \textbf{Description} & \textbf{\%} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Theme} & \textbf{Sub-theme} & \textbf{Description} & \textbf{\%} \\
+\hline
+\endhead
+
+\hline
+\endfoot
+
+\hline
+\endlastfoot
+
+\multirow{5}{=}{\centering Development} & Build, Test \& Development Commands & The document provides the canonical local development command set for installing, running, building, testing, linting, and type-checking the repo. ("npm install", "npm run dev", "npm run build", "npm run test", "npm run lint", and "npm run type-check") & 94.9\% \\
+\hhline{~||-|-|-|}
+ & Dependency, Toolchain \& Version Management & The document specifies the package manager, Node.js version requirements, and the use of corepack/Yarn workspace tooling. ("Node.js: Version 20.19.0+ or 22.12.0+", "Package Manager: Yarn 4.5.1 (managed via corepack)", "This is a **TypeScript monorepo** managed with **Turborepo** and **Yarn workspaces**") & 76.7\% \\
+\hhline{~||-|-|-|}
+ & Configuration \& Environment Management & The guide points to configuration files and environment-variable setup as part of local development and database operations. ("Double check the `.env` file in `services/database`", "Configure environment variables in services/server/.env", "Key Configuration Files") & 62.1\% \\
+\hhline{~||-|-|-|}
+ & Generated-Artifact \& Cross-Source Synchronization & It tells the agent to regenerate SDKs after schema-related changes, keeping derived artifacts in sync with their sources. ("When making changes to the schema of the provider from Go code, regenerate the schema and sdks.") & 46.5\% \\
+\hhline{~||-|-|-|}
+ & Release \& Version Publishing & The document lays out semantic versioning, changelog updates, changesets, and publish commands. (``Follow Semantic Versioning'', ``Update CHANGELOG.md'', ``Use conventional commits'', ``pnpm changeset'', ``pnpm changeset publish'') & 21.2\% \\
+\hline
+\multirow{1}{=}{\centering Testing} & Testing \& Quality Verification & It explicitly requires unit tests for new work and gives the expected testing checklist and frameworks. (``Every new feature or bugfix MUST be covered by unit tests.'' ``We use `pytest` as the testing framework'' ``The testing file structure should mirror the source code structure.'') & 93.7\% \\
+\hline
+\multirow{2}{=}{\centering Documentation} & Documentation Maintenance, Navigation \& Instruction Hierarchy & It directs agents to the authoritative standards doc and the JavaScript guide for further instructions, establishing where to look for canonical guidance. ("for coding standards and best practices, see `CODE\_STANDARDS.md`"; "Refer to the `docs/js-guide/` directory for the JavaScript Guide") & 91.4\% \\
+\hhline{~||-|-|-|}
+ & Documentation Authoring Standards & It lays out JavaDoc structure, formatting, and documentation content requirements. ("\#\#\# JavaDoc Documentation Standards", "Use `$<$p$>$`, `$<$ol$>$`, `$<$ul$>$`, `$<$li$>$` for structured content", "Include `$<$pre$>$` blocks for code examples") & 34.0\% \\
+\hline
+\multirow{2}{=}{\centering Conventions} & Code Style, Conventions \& Naming & The document includes coding conventions for Go style, naming, function structure, documentation, error wrapping, and logging style. ("Use meaningful variable names", "Keep functions small and focused", "Document exported types and functions", "Wrap errors with context using `fmt.Errorf`", "Use structured logging (look for existing patterns)") & 88.6\% \\
+\hhline{~||-|-|-|}
+ & Communication Standards \& Language & It contains explicit communication constraints for commit messages and conversational phrasing. (``NEVER SAY "You're absolutely right!"'', ``You never credit yourself in commits.'', ``NEVER EVER EVER credit yourself in commit messages.'') & 26.0\% \\
+\hline
+\multirow{4}{=}{\centering Architecture} & System Architecture \& Module Boundaries & It defines the repository’s main entry points and core component responsibilities, helping the agent understand module boundaries and data flow within the extension. (``Entry points:'', ``Desktop: `src/extension.ts` $\rightarrow$ bundled to `dist/extension.js`'', ``Core components:'', ```src/PrettierEditService.ts` - Registers VS Code document formatting providers, handles format requests'') & 82.8\% \\
+\hhline{~||-|-|-|}
+ & API Design, Schema \& Backward Compatibility & This is strongly about preserving the public plugin API, handling extension schemas, and ensuring backward compatibility for external plugin consumers. ("The `console-dynamic-plugin-sdk` is the public API", "Changes to extension schemas need migration paths") & 32.6\% \\
+\hhline{~||-|-|-|}
+ & Plugin/Extension Architecture \& Integrations & It directs the agent to use a specific UI integration library for all interactions, which is an implementation constraint for an external integration layer. ("Use `pkg/htmx` for all UI interactions") & 19.8\% \\
+\hhline{~||-|-|-|}
+ & Multilayer Network/Graph Domain Semantics \& API Selection & The document gives explicit domain-specific guidance for py3plex’s multilayer/network analysis APIs, including how to choose and use DSL, builder, pipeline, and semiring interfaces, plus multilayer semantics such as layers, node replicas, and cross-layer behavior. (``SQL-like DSL for Multilayer Networks'', ``DSL v2: Modern Builder API (Q, UQ, L)'', ``Dplyr-Style Chainable Graph Operations API'', ``Semiring Algebra (S Builder): Paths, Closure, Fixed-Point'') & 4.0\% \\
+\hline
+\multirow{4}{=}{\centering Workflow} & Code Search, Discovery \& External Research & Tells agents where to start exploring the codebase and to use the preferred search tool for structural searches. ("crates/ - Core functionality (start here when exploring)", "whenever a search requires syntax-aware or structural matching, default to `ast-grep --lang rust -p '$<$pattern$>$'`") & 66.5\% \\
+\hhline{~||-|-|-|}
+ & Git, Commit \& Branch Workflow & It gives explicit branch, commit, and PR conventions, including branch naming, commit grouping, draft PRs, and labels. (``Always commit on a branch, never directly on master.'', ``When creating PRs, always create them as drafts with the "DON'T REVIEW YET" label'', ``always use the GitHub PR template.'') & 54.7\% \\
+\hhline{~||-|-|-|}
+ & Change Scope, Repository Policy \& Worktree Execution & It imposes repository-policy constraints on how work should be done, including where to place scripts, no destructive git operations, and how to handle tracked workarounds and PR scope. (``Place temporary scripts in `dev/` (mounted as `/opt/airflow/dev/` inside Breeze).'', ``Do not use destructive git operations unless explicitly requested.'') & 49.1\% \\
+\hhline{~||-|-|-|}
+ & Pull Request, Issue \& Code Review Process & It instructs the agent to use the PR template and preserve unchecked checkboxes when opening a pull request. ("When opening a pull request, use the repository's PR template", "Do not remove checkboxes that are not checked") & 42.3\% \\
+\hline
+\multirow{1}{=}{\centering Security} & Security, Secrets \& Safe Operations & Multiple rules protect credentials, logs, and operational safety, including not hardcoding secrets and handling production changes carefully. (``避免泄露真实凭证。''; ``不得在仓库中写死凭证或输出到日志；'') & 53.3\% \\
+\hline
+\multirow{5}{=}{\centering Observability} & Debugging, Troubleshooting \& Diagnostics & The guide focuses heavily on diagnosing failures via logs, error searches, device logs, and iterative fix/rerun loops. (``Check for errors FIRST'', ``Inspect CustomAgentLogsTmp/Sandbox/android-device.log'', ``Identify root cause (element not found? crash?)'') & 42.8\% \\
+\hhline{~||-|-|-|}
+ & Error Handling \& Runtime Robustness & The instructions explicitly require safe handling for runtime APIs like `launchCommand`, `getSelectedText()`, and toast errors, with prescribed try-catch patterns and failure behavior. (``Ensure `launchCommand` is always wrapped in a try-catch block.'', ``Ensure `getSelectedText()` has graceful error handling'', ``suggest using `showFailureToast` from `@raycast/utils` for simplification'') & 36.5\% \\
+\hhline{~||-|-|-|}
+ & Logging \& Observability & It directs how test and service logs are handled and where operational logs/spans live. ("All test output is automatically logged to `logs/test.log` instead of the console"; "Service logs are in `logs/service.log` (JSONL format - one JSON object per line)"; "OTEL spans are in `logs/otel-spans.jsonl`") & 29.1\% \\
+\hhline{~||-|-|-|}
+ & Performance, Scaling \& Resource Limits & It contains explicit performance guidance for hot paths, pooling, caching, and threading behavior. (``- **Avoid LINQ in hot paths**'' / ``- **Use object pools extensively**'' / ```Compilation` objects cache semantic information - reuse when possible'') & 24.9\% \\
+\hhline{~||-|-|-|}
+ & Deployment, Infrastructure \& Service Operations & It covers live-service tooling and operational server workflows, especially the MCP server and safe output handling. (``py3plex provides a production-ready MCP server'', ``Starting the Server'', ``stdio transport'', ``safe output directory'') & 23.0\% \\
+\hline
+\multirow{2}{=}{\centering Agents} & Agent Communication, Clarification \& Multi-Agent Coordination & It directs agents to think before action, confirm constraints, restate the request, and ask for approval before high-risk operations. (``Think Before Action: perform deep analysis and planning before coding.'' ``Task Start - Choose the strategy that fits the task characteristics. Confirm tool availability plus fallback approaches.'' ``When the user request is scoped ... confirm that no broader refactor is expected'') & 34.0\% \\
+\hhline{~||-|-|-|}
+ & Session/Task Tracking \& Agent Working Files & The document instructs the agent to record ongoing work in a dedicated working area for multi-session continuity. ("Capture multi-session Levanter work in `.agents/projects/` inside this directory so partial progress is easy to resume.") & 22.1\% \\
+\hline
+\multirow{2}{=}{\centering Data} & Database, Migrations \& Schema Management & It gives explicit migration workflow rules, including generating/running/reverting migrations and schema change policy. ("Schema sync (`synchronize`) is permanently disabled — all schema changes must go through migrations.", "modify entity $\rightarrow$ generate migration $\rightarrow$ commit both.", "New migrations must be imported in `database.module.ts`") & 29.1\% \\
+\hhline{~||-|-|-|}
+ & Reproducibility, Provenance \& Source-of-Truth Consistency & It emphasizes keeping canonical derived data and mirrored values consistent across systems. ("The source of truth is the database itself" and "these MUST stay in sync" / "Mirror the app-server's provider matching") & 11.6\% \\
+\hline
+\multirow{3}{=}{\centering Platform} & Cross-Platform, Terminal \& Feature-Gating Constraints & It contains explicit cross-platform build/script requirements, OS-conditional logic, executable/script handling, and path-casing constraints. (``Any changes to build scripts or project files MUST work on both Windows and non-Windows operating systems'', ``Use OS-conditional logic in MSBuild targets'', ``Use correct case for all directory paths'') & 26.7\% \\
+\hhline{~||-|-|-|}
+ & Internationalization \& Localization & The document explicitly requires i18n for user-facing text and points to translation guidance. ("Always use i18n functions for user-facing text"; "Never hard-code UI strings in English or other languages"; "Refer to `/i18n-translation-instruction.md` for translation guidelines") & 9.1\% \\
+\hhline{~||-|-|-|}
+ & Accessibility & The document includes explicit accessibility requirements for tables, focusable elements, and visually hidden interactive elements. ("Every `$<$table$>$` / `$<$Table$>$` must have an `aria-label` or `$<$caption$>$`", "Every element with `tabIndex=\{0\}` must have a semantic `role` attribute", "you must also remove it from the keyboard tab order and accessibility tree") & 7.2\% \\
+\hline
+\end{longtable}
+}

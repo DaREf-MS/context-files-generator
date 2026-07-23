@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excel Annotation Tool</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3/dist/style.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.3"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --surface3: #2a2f45;
+      --border: #2e3350;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --accent-glow: rgba(108, 99, 255, 0.18);
+      --text: #e8eaf6;
+      --text2: #9fa8c9;
+      --text3: #5a6280;
+      --green: #34d399;
+      --green-bg: rgba(52, 211, 153, 0.1);
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    /* Add this right below :root */
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface2: #f1f5f9;
+      --surface3: #e2e8f0;
+      --border: #cbd5e1;
+      --accent: #4f46e5;
+      --accent2: #7c3aed;
+      --accent-glow: rgba(79, 70, 229, 0.18);
+      --text: #0f172a;
+      --text2: #475569;
+      --text3: #64748b;
+      --green: #10b981;
+      --green-bg: rgba(16, 185, 129, 0.1);
+      --yellow: #f59e0b;
+      --red: #ef4444;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 18px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      /* Add this */
+      background: var(--surface);
+      position: sticky;
+      /* Add this */
+      top: 0;
+      /* Add this */
+      z-index: 200;
+      /* Add this to keep it above table content */
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    header h1 {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    header span {
+      font-size: 13px;
+      color: var(--text3);
+      margin-left: 4px;
+      font-weight: 400;
+    }
+
+    /* ── Main layout ── */
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 300px;
+      min-width: 260px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      gap: 20px;
+      overflow-y: auto;
+    }
+
+    .config-section h3 {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text3);
+      margin-bottom: 12px;
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--text2);
+      font-weight: 500;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    select,
+    textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #5b52e0;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text2);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: var(--surface3);
+      color: var(--text);
+    }
+
+    .btn-success {
+      background: var(--green);
+      color: #0f1117;
+    }
+
+    .btn-success:hover {
+      opacity: 0.9;
+    }
+
+    .btn-danger {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      opacity: 0.9;
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-full {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+
+    .drop-zone .icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .drop-zone p {
+      font-size: 13px;
+      color: var(--text2);
+    }
+
+    .drop-zone small {
+      font-size: 11px;
+      color: var(--text3);
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .file-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green-bg);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--green);
+    }
+
+    /* ── Content area ── */
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: none;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text2);
+      margin-bottom: 8px;
+    }
+
+    .progress-track {
+      height: 6px;
+      background: var(--surface3);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+
+    /* ── Table area ── */
+    .table-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text3);
+      gap: 12px;
+    }
+
+    .empty-state .big-icon {
+      font-size: 56px;
+      opacity: 0.4;
+    }
+
+    .empty-state h2 {
+      font-size: 18px;
+      color: var(--text2);
+      font-weight: 500;
+    }
+
+    .empty-state p {
+      font-size: 13px;
+      text-align: center;
+      max-width: 320px;
+      line-height: 1.6;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text3);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+
+    tbody tr:hover {
+      background: var(--surface2);
+    }
+
+    tbody tr.processed,
+    tbody tr:has(.badge-done) {
+      opacity: 0.6;
+    }
+
+    tbody td {
+      padding: 12px 14px;
+      vertical-align: middle;
+      max-width: 280px;
+    }
+
+    .cell-text {
+      /* Retained for visual cleanliness, actual strict truncation done in JS */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-pending {
+      background: var(--surface3);
+      color: var(--text3);
+    }
+
+    .badge-done {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+    }
+
+    .row-num {
+      color: var(--text3);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    /* ── Modal ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 96vw;
+      max-width: 1500px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 32px 64px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .modal-sub {
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+
+    .close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--surface3);
+      border: none;
+      color: var(--text2);
+      cursor: pointer;
+      font-size: 16px;
+      display: grid;
+      place-items: center;
+      transition: background 0.15s;
+    }
+
+    .close-btn:hover {
+      background: var(--border);
+    }
+
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .modal-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text3);
+      margin-bottom: 8px;
+    }
+
+    .prompt-textarea {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.7;
+      padding: 14px;
+      resize: vertical;
+      min-height: 140px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .prompt-textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .row-data-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+    }
+
+    .row-data-item {
+      font-size: 12px;
+    }
+
+    .row-data-item .key {
+      color: var(--text3);
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .row-data-item .val {
+      color: var(--text2);
+      word-break: break-word;
+    }
+
+    .llm-response {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text2);
+      min-height: 80px;
+      white-space: pre-wrap;
+      display: none;
+    }
+
+    .llm-response.visible {
+      display: block;
+    }
+
+    .llm-response.loading {
+      color: var(--text3);
+      font-style: italic;
+    }
+
+    .annotation-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* spinner */
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--surface3);
+      border-radius: 3px;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Simple-DataTables Theme Overrides ── */
+    .dataTable-wrapper {
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .dataTable-selector,
+    .dataTable-input {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .dataTable-selector:focus,
+    .dataTable-input:focus {
+      border-color: var(--accent);
+    }
+
+    .dataTable-pagination a {
+      color: var(--text2);
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+    }
+
+    .dataTable-pagination a:hover {
+      background: var(--surface2);
+    }
+
+    .dataTable-pagination .active a,
+    .dataTable-pagination .active a:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .dataTable-sorter::before,
+    .dataTable-sorter::after {
+      opacity: 0.2;
+    }
+
+    .dataTable-table>tbody>tr>td,
+    .dataTable-table>tbody>tr>th,
+    .dataTable-table>thead>tr>th {
+      border-color: var(--border) !important;
+    }
+
+    /* Add this block to make the table header sticky */
+    .dataTable-table>thead>tr>th {
+      border-color: var(--border) !important;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      /* Prevents transparent overlap */
+      z-index: 10;
+    }
+
+    .prompt-viewer {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      max-height: 350px;
+      overflow: auto;
+      padding: 0;
+    }
+
+    .review-layout {
+      display: flex;
+      gap: 18px;
+      height: 600px;
+    }
+
+    .left-pane,
+    .right-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .left-pane {
+      max-width: 48%;
+    }
+
+    .right-pane {
+      max-width: 52%;
+    }
+
+    .panel {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel.grow {
+      flex: 1;
+    }
+
+    .text-view {
+      white-space: pre-wrap;
+      overflow: auto;
+      padding: 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    #diffView,
+    #systemPromptView {
+      overflow: auto;
+      flex: 1;
+    }
+
+    .panel-header {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text3);
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      margin: 0;
+    }
+
+    /* ── Topic Chips ── */
+    .topics-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 14px;
+    }
+
+    .topic-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div class="logo">📋</div>
+      <div>
+        <h1>Excel/CSV Annotation Tool <span>powered by OpenRouter</span></h1>
+      </div>
+    </div>
+    <button id="themeToggleBtn" class="btn btn-ghost" style="padding: 6px 10px; font-size: 16px;">☀️</button>
+  </header>
+
+  <div class="main">
+
+    <aside class="sidebar">
+      <div class="config-section">
+        <h3>📁 Data File (from /data)</h3>
+
+        <div class="field" style="display: flex; gap: 8px;">
+          <select id="serverFileSelect" style="flex: 1;">
+            <option value="">Loading files...</option>
+          </select>
+          <button class="btn btn-ghost" onclick="loadFromServer()" id="loadServerBtn">Load</button>
+        </div>
+
+        <div style="text-align: center; margin: 12px 0; color: var(--text3); font-size: 11px;">— OR —</div>
+
+        <div id="dropZone" class="drop-zone" onclick="document.getElementById('fileInput').click()">
+          <div class="icon">📂</div>
+          <p>Drop a local file here</p>
+        </div>
+        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv">
+
+        <div id="fileBadge" style="display:none; margin-top:10px;"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="config-section">
+        <h3>⚙️ Configuration</h3>
+        <div class="field">
+          <label>OpenRouter API Key</label>
+          <input type="password" id="apiKey" placeholder="sk-or-…">
+        </div>
+        <div class="field">
+          <label>Model</label>
+          <select id="modelSelect">
+            <option value="llama3.2:3b">Llama 3.2 3b</option>
+            <option value="gemma4:e2b">Gemma 4 e2b</option>
+            <option value="openai/gpt-5-mini">GPT-5.1 Mini</option>
+            <option value="openai/gpt-4o-mini">GPT-4o Mini (fast)</option>
+            <option value="openai/gpt-4o">GPT-4o</option>
+            <option value="anthropic/claude-sonnet-4-5">Claude Sonnet 4.5</option>
+            <option value="anthropic/claude-haiku-3-5">Claude Haiku 3.5</option>
+            <option value="meta-llama/llama-3.1-8b-instruct">Llama 3.1 8B</option>
+            <option value="google/gemini-flash-1.5">Gemini Flash 1.5</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>System Prompt Column</label>
+          <select id="systemPromptCol">
+            <option value="">— load a file first —</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Display Column (table label)</label>
+          <select id="displayCol">
+            <option value="">— load a file first —</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="config-section">
+        <h3>💾 Save Annotations</h3>
+        <div class="field">
+          <label>Output Filename</label>
+          <input type="text" id="outputFilename" value="annotated_data.xlsx">
+        </div>
+        <button class="btn btn-success btn-full" id="exportBtn" disabled onclick="exportExcel()">
+          ⬇ Save to data/ Folder
+        </button>
+        <p style="font-size:11px; color:var(--text3); margin-top:8px; line-height:1.5;">
+          Annotations are stored in-memory as you work.
+        </p>
+      </div>
+    </aside>
+
+    <div class="content">
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-header">
+          <span id="progressLabel">0 of 0 processed</span>
+          <span id="progressPct">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="table-wrap" id="tableWrap">
+        <div class="empty-state" id="emptyState">
+          <div class="big-icon">📊</div>
+          <h2>No data loaded</h2>
+          <p>Upload an Excel (.xlsx) or CSV file using the panel on the left. Make sure it includes a column with a
+            system prompt to send to the LLM.</p>
+        </div>
+        <div id="tableContainer" style="display:none;">
+          <table id="dataTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="modalTitle">Row #1</div>
+          <div class="modal-sub" id="modalSub">Click "Run LLM" to classify this instance</div>
+        </div>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- <div>
+        <div class="modal-section-label">📄 Row Data</div>
+        <div class="row-data-grid" id="rowDataGrid"></div>
+      </div> -->
+
+        <div class="review-layout">
+
+          <div class="left-pane">
+            <div class="panel">
+              <div class="panel-header">Topics</div>
+              <div id="commitMessageView" class="topics-container"></div>
+            </div>
+          </div>
+
+          <div class="right-pane">
+            <div class="panel grow" style="display: none;">
+              <div class="panel-header">Diff</div>
+              <div id="diffView" style="flex: 1; overflow: auto;"></div>
+            </div>
+
+            <div class="panel grow">
+              <div class="panel-header">System Prompt</div>
+              <div id="systemPromptView" class="text-view"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <div id="llmResponseWrap" style="display:none;">
+          <div class="modal-section-label">🤖 LLM Response</div>
+          <div class="llm-response" id="llmResponse"></div>
+        </div>
+
+        <div>
+          <div class="modal-section-label">✏️ Human Annotation</div>
+          <div class="annotation-grid">
+            <div class="field">
+              <label>Category</label>
+              <textarea id="categoryInput" rows="4" placeholder="Assign a category..."
+                style="width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-family:'Inter',sans-serif; font-size:13px; padding:10px 12px; outline:none; resize:vertical;"
+                onfocus="this.style.borderColor='var(--accent)'"
+                onblur="this.style.borderColor='var(--border)'"></textarea>
+            </div>
+            <div class="field">
+              <label>Sub-category</label>
+              <textarea id="subCategoryInput" rows="4" placeholder="Assign a sub-category..."
+                style="width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text); font-family:'Inter',sans-serif; font-size:13px; padding:10px 12px; outline:none; resize:vertical;"
+                onfocus="this.style.borderColor='var(--accent)'"
+                onblur="this.style.borderColor='var(--border)'"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <div class="footer-actions">
+          <button class="btn btn-primary" id="runLLMBtn" onclick="runLLM()">
+            ▶ Run LLM
+          </button>
+          <button class="btn btn-success" id="saveBtn" onclick="saveAnnotation()">
+            ✔ Save &amp; Mark Processed
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── State ──────────────────────────────────────────────────────────
+    let rows = [];          // Array of objects (parsed Excel/CSV)
+    let headers = [];       // Column names
+    let currentIdx = null;  // Row index open in modal
+    let currentFilename = 'annotated_data.xlsx'; // Track the filename for saving
+    let annotatedFilename = 'annotated_data.xlsx'; // Track the filename for saving
+    let dataTableInstance = null;
+
+    // ── Server File Management ─────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', fetchServerFiles);
+
+    // ── File Upload & Parsing (via SheetJS) ────────────────────────────
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    // ── Theme Management ───────────────────────────────────────────────
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+
+    // Apply saved theme on load
+    if (currentTheme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      themeToggleBtn.textContent = '🌙';
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      if (current === 'light') {
+        // Switch to Dark
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+        themeToggleBtn.textContent = '☀️';
+      } else {
+        // Switch to Light
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+        themeToggleBtn.textContent = '🌙';
+      }
+    });
+
+    async function fetchServerFiles() {
+      try {
+        const res = await fetch('http://localhost:8000/api/files');
+        const data = await res.json();
+        const select = document.getElementById('serverFileSelect');
+
+        if (data.files.length === 0) {
+          select.innerHTML = '<option value="">(No files in /data folder)</option>';
+          return;
+        }
+
+        select.innerHTML = data.files.map(f => `<option value="${f}">${f}</option>`).join('');
+      } catch (err) {
+        console.error("Error fetching files:", err);
+        document.getElementById('serverFileSelect').innerHTML = '<option value="">Error connecting to server</option>';
+      }
+    }
+
+    async function loadFromServer() {
+      const filename = document.getElementById('serverFileSelect').value;
+      if (!filename) return;
+
+      const btn = document.getElementById('loadServerBtn');
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      try {
+        const res = await fetch(`http://localhost:8000/api/files/${filename}`);
+        if (!res.ok) throw new Error('Failed to fetch file');
+
+        const arrayBuffer = await res.arrayBuffer();
+        currentFilename = filename;
+        processExcelData(arrayBuffer, filename);
+      } catch (err) {
+        alert('Error loading file from server: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Load';
+      }
+    }
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault(); dropZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) handleFile(fileInput.files[0]);
+    });
+
+    function handleLocalFile(file) {
+      if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
+        alert('Please upload a valid Excel (.xlsx, .xls) or CSV file.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        currentFilename = file.name;
+        processExcelData(e.target.result, file.name);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function handleFile(file) {
+      if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
+        alert('Please upload a valid Excel (.xlsx, .xls) or CSV file.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+
+          // Convert to Array of Arrays to extract headers and data properly
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+          if (!jsonData || jsonData.length < 2) {
+            alert('Could not parse file. Ensure it has at least a header row and one data row.');
+            return;
+          }
+
+          // Extract Headers
+          headers = jsonData[0].map(h => (h !== undefined && h !== null) ? String(h).trim() : '');
+
+          // Extract Rows (Iterate from row 1 to skip headers)
+          rows = [];
+          for (let i = 1; i < jsonData.length; i++) {
+            const rowArr = jsonData[i];
+            if (rowArr.length === 0) continue; // Skip completely empty rows
+
+            const obj = {};
+            headers.forEach((h, j) => {
+              obj[h] = (rowArr[j] !== undefined && rowArr[j] !== null) ? String(rowArr[j]).trim() : '';
+            });
+
+            // --- Resume Progress Logic ---
+            // Check if the uploaded file already has our exported columns
+            const existingCategory = obj['category'] || '';
+            const existingSubCategory = obj['sub-category'] || '';
+
+            obj.__category = existingCategory;
+            obj.__sub_category = existingSubCategory;
+
+            // If either category or label exists, mark the row as processed
+            obj.__processed = (existingCategory !== '' || existingSubCategory !== '');
+
+            rows.push(obj);
+          }
+
+          updateColSelects();
+          renderTable();
+
+          document.getElementById('fileBadge').innerHTML =
+            `<div class="file-badge">✅ ${file.name} · ${rows.length} rows</div>`;
+          document.getElementById('fileBadge').style.display = 'block';
+          document.getElementById('dropZone').style.display = 'none';
+          document.getElementById('exportBtn').disabled = false;
+
+        } catch (error) {
+          alert('Error parsing the file: ' + error.message);
+        }
+      };
+
+      // Read as ArrayBuffer for SheetJS
+      reader.readAsArrayBuffer(file);
+    }
+
+    // ── Core Parsing Logic ─────────────────────────────────────────────
+    function processExcelData(arrayBuffer, filename) {
+      try {
+        const data = new Uint8Array(arrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+        if (!jsonData || jsonData.length < 2) {
+          alert('Could not parse file. Ensure it has at least a header row and one data row.');
+          return;
+        }
+
+        headers = jsonData[0].map(h => (h !== undefined && h !== null) ? String(h).trim() : '');
+
+        rows = [];
+        for (let i = 1; i < jsonData.length; i++) {
+          const rowArr = jsonData[i];
+          if (rowArr.length === 0) continue;
+
+          const obj = {};
+          headers.forEach((h, j) => {
+            obj[h] = (rowArr[j] !== undefined && rowArr[j] !== null) ? String(rowArr[j]).trim() : '';
+          });
+
+          // Resume Progress Logic
+          const existingCategory = obj['category'] || '';
+          const existingSubCategory = obj['sub-category'] || '';
+
+          obj.__category = existingCategory;
+          obj.__sub_category = existingSubCategory;
+          obj.__processed = (existingCategory !== '' || existingSubCategory !== '');
+
+          rows.push(obj);
+        }
+
+        updateColSelects();
+        renderTable();
+
+        document.getElementById('fileBadge').innerHTML = `<div class="file-badge">✅ ${filename} · ${rows.length} rows</div>`;
+        document.getElementById('fileBadge').style.display = 'block';
+        document.getElementById('exportBtn').disabled = false;
+
+      } catch (error) {
+        alert('Error parsing the file: ' + error.message);
+      }
+    }
+
+    // Attach listener to a stable parent container so it survives DataTables rebuilds!
+    document.getElementById('tableWrap').addEventListener('click', e => {
+      const tr = e.target.closest('tr');
+
+      if (tr) {
+        // Rely on the inner cell text rather than volatile tr attributes
+        const rowNumCell = tr.querySelector('.row-num');
+        if (rowNumCell) {
+          const idx = parseInt(rowNumCell.textContent, 10) - 1;
+          if (!isNaN(idx)) openModal(idx);
+        }
+      }
+    });
+
+    function renderTable(targetPage = 1) {
+      // 1. Destroy existing instance
+      let activePage = targetPage
+
+      if (dataTableInstance) {
+        // Fallback just in case a parameter wasn't passed directly
+        if (!activePage) activePage = dataTableInstance._currentPage;
+        dataTableInstance.destroy();
+      }
+
+      const previewCols = ['repo', 'context_file', 'github_link'];
+
+      const table = document.getElementById('dataTable');
+
+      // 2. Rebuild the HTML entirely so the library parses the fresh state
+      table.innerHTML = `
+    <thead id="tableHead">
+      <tr>
+        <th>#</th>
+        ${previewCols.map(h => `<th>${h}</th>`).join('')}
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      ${rows.map((row, i) => `
+        <tr>
+          <td class="row-num">${i + 1}</td>
+          ${previewCols.map(h => {
+        const fullText = row[h];
+        const truncated = truncateString(fullText, 60);
+        return `<td><span class="cell-text" title="${escHtml(fullText)}">${escHtml(truncated)}</span></td>`;
+      }).join('')}
+          <td>
+            <span class="status-badge ${row.__processed ? 'badge-done' : 'badge-pending'}">
+              ${row.__processed ? '✔ Processed' : '⏳ Pending'}
+            </span>
+          </td>
+        </tr>`).join('')}
+    </tbody>
+  `;
+
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('tableContainer').style.display = 'block';
+      document.getElementById('progressWrap').style.display = 'block';
+      updateProgress();
+
+      // 3. Reinitialize DataTables
+      dataTableInstance = new simpleDatatables.DataTable(table, {
+        searchable: true,
+        fixedHeight: false,
+        perPage: 10,
+        perPageSelect: [10, 25, 50, 100],
+        sanitize: false,
+        labels: {
+          placeholder: "Search rows...",
+          perPage: "rows per page",
+          noRows: "No entries found",
+          info: "Showing {start} to {end} of {rows} entries"
+        }
+      });
+
+      // 4. Restore the page (Timeout ensures initialization is complete before jumping)
+      if (activePage) {
+        requestAnimationFrame(() => {
+          dataTableInstance.page(activePage);
+        });
+      }
+    }
+
+    // ── Save to Server ─────────────────────────────────────────────────
+    async function exportExcel() {
+      const btn = document.getElementById('exportBtn');
+      const annotatedIput = document.getElementById('outputFilename');
+      if (!annotatedIput.value) {
+        console.error("Export Error: Filename Output is empty."); // Added to help catch any other hidden issues
+        alert('Output filename can be empty.');
+        return
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Saving to server...';
+
+      try {
+        const exportData = rows.map(r => {
+          const newObj = {};
+
+          // Updated safety function with a lower limit and a truncation warning
+          const safeString = (val) => {
+            if (val === null || val === undefined) return '';
+            const str = String(val);
+            // Cap at 32,000 to leave a buffer for multi-byte/special characters
+            if (str.length > 32000) {
+              return str.substring(0, 32000) + '\n\n... [TRUNCATED DUE TO EXCEL LIMIT]';
+            }
+            return str;
+          };
+
+          headers.forEach(h => {
+            if (h !== 'category' && h !== 'sub-category') {
+              newObj[h] = safeString(r[h]);
+            }
+          });
+
+          newObj['category'] = safeString(r.__category);
+          newObj['sub-category'] = safeString(r.__sub_category);
+
+          return newObj;
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Annotations");
+
+        const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([wbout], { type: "application/octet-stream" });
+
+        const formData = new FormData();
+        formData.append("file", blob, annotatedIput.value);
+
+        console.log(`annotatedIput: ${annotatedIput.value}`)
+        const res = await fetch('http://localhost:8000/api/save', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!res.ok) throw new Error('Server rejected the file.');
+
+        btn.textContent = '✔ Saved successfully!';
+        setTimeout(() => { btn.textContent = '⬇ Save to data/ Folder'; btn.disabled = false; }, 2000);
+
+      } catch (err) {
+        console.error("Export Error: ", err); // Added to help catch any other hidden issues
+        alert('Error saving file: ' + err.message);
+        btn.textContent = '⬇ Save to data/ Folder';
+        btn.disabled = false;
+      }
+    }
+
+    function updateColSelects() {
+      ['systemPromptCol', 'displayCol'].forEach(id => {
+        const sel = document.getElementById(id);
+        sel.innerHTML = headers.map(h => `<option value="${h}">${h}</option>`).join('');
+      });
+      // Auto-guess system prompt column
+      const guess = headers.find(h => /system|prompt|instruction/i.test(h));
+      if (guess) document.getElementById('systemPromptCol').value = guess;
+      const display = headers.find(h => /text|content|title|name|id/i.test(h));
+      if (display) document.getElementById('displayCol').value = display || headers[0];
+    }
+
+    // ── Render Table ───────────────────────────────────────────────────
+    function truncateString(str, maxLength = 60) {
+      if (!str) return '';
+      return str.length > maxLength ? str.substring(0, maxLength) + '...' : str;
+    }
+
+    function escHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ── Progress ───────────────────────────────────────────────────────
+    function updateProgress() {
+      const done = rows.filter(r => r.__processed).length;
+      const total = rows.length;
+      const pct = total ? Math.round((done / total) * 100) : 0;
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressLabel').textContent = `${done} of ${total} processed`;
+      document.getElementById('progressPct').textContent = pct + '%';
+    }
+
+    // ── Modal ──────────────────────────────────────────────────────────
+    function openModal(idx) {
+      currentIdx = idx;
+      const row = rows[idx];
+      const sysProm = document.getElementById('systemPromptCol').value;
+      const rawDiff = row["diff"] || "";
+      const prompt = row[sysProm] || "";
+      const filename = row.context_file || "AGENTS.md";
+
+      const fullDiff =
+        `diff --git a/${filename} b/${filename}
+    --- a/${filename}
+    +++ b/${filename}
+    ${rawDiff}`;
+
+      document.getElementById('modalTitle').textContent = `Row #${idx + 1}`;
+      document.getElementById('modalSub').textContent = row.__processed
+        ? 'This row is already processed — you can update the annotation.'
+        : 'Click "Run LLM" to classify, then fill in annotation and save.';
+
+      // System prompt (Full text)
+      // document.getElementById('systemPromptDisplay').value = row[sysProm] || '(no system prompt found — check column selection)';
+
+      // // Row data (Full text)
+      // const cols = headers.filter(h => h !== sysProm);
+      // document.getElementById('rowDataGrid').innerHTML = cols.map(h =>
+      //   `<div class="row-data-item"><div class="key">${escHtml(h)}</div><div class="val">${escHtml(row[h])}</div></div>`
+      // ).join('');
+
+      const target = document.getElementById("diffView");
+      target.innerHTML = "";
+
+      const ui = new Diff2HtmlUI(target, fullDiff, {
+        drawFileList: false,
+        matching: "none",
+        outputFormat: "line-by-line"
+      });
+      ui.draw();
+      ui.highlightCode();
+
+      document.getElementById("systemPromptView").innerHTML =
+        `<pre><code class="language-markdown">${escHtml(prompt)
+        }</code></pre>`;
+
+      hljs.highlightAll();
+
+      // --- Dynamic Topic Chips Generation ---
+      const topicsContainer = document.getElementById("commitMessageView");
+      topicsContainer.innerHTML = ""; // Clear out previous layout
+
+      // Safely fetch labels and replace separators or commas
+      const rawLabels = row["topic_labels"] || "";
+      const normalizedLabels = rawLabels.split("&SEP&");
+
+      // Existing annotation
+      document.getElementById('categoryInput').value = row.__category || '';
+      document.getElementById('subCategoryInput').value = row.__sub_category || '';
+
+      // Filter empty items, clean strings, and build chips
+      const uniqueLabels = [...new Set(normalizedLabels.map(l => l.trim()).filter(l => l.length > 0))];
+
+      if (uniqueLabels.length === 0) {
+        topicsContainer.innerHTML = `<span style="color: var(--text3); font-style: italic; font-size: 13px;">No topics available</span>`;
+      } else {
+        // A lightweight deterministic string-hashing algorithm to assign distinct colors
+        const getChipColors = (str) => {
+          let hash = 0;
+          for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+          }
+          // Cycle through 6 safe, professional tech accents
+          const colors = [
+            { bg: 'rgba(108, 99, 255, 0.15)', text: '#a78bfa' },  // Purple/Indigo
+            { bg: 'rgba(52, 211, 153, 0.15)', text: '#34d399' },   // Green
+            { bg: 'rgba(59, 130, 246, 0.15)', text: '#60a5fa' },   // Blue
+            { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24' },   // Amber
+            { bg: 'rgba(236, 72, 153, 0.15)', text: '#f472b6' },   // Pink
+            { bg: 'rgba(20, 184, 166, 0.15)', text: '#2dd4bf' }    // Teal
+          ];
+          return colors[Math.abs(hash) % colors.length];
+        };
+
+        uniqueLabels.forEach(label => {
+          const colorPair = getChipColors(label);
+          const chip = document.createElement('span');
+          chip.className = 'topic-chip';
+          chip.textContent = label;
+          chip.style.backgroundColor = colorPair.bg;
+          chip.style.color = colorPair.text;
+          chip.style.borderColor = colorPair.text + '22'; // Subtle transparent border
+          topicsContainer.appendChild(chip);
+        });
+      }
+
+      // Reset LLM response
+      document.getElementById('llmResponseWrap').style.display = 'none';
+      const resp = document.getElementById('llmResponse');
+      resp.textContent = '';
+      resp.className = 'llm-response';
+
+      document.getElementById('overlay').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('overlay').classList.remove('active');
+      currentIdx = null;
+    }
+
+    // Click outside to close
+    document.getElementById('overlay').addEventListener('click', e => {
+      if (e.target === document.getElementById('overlay')) closeModal();
+    });
+
+    // ── LLM Call ──────────────────────────────────────────────────────
+    async function runLLM() {
+      // We no longer need to pull the API key from the DOM
+      const row = rows[currentIdx];
+      const sysProm = document.getElementById('systemPromptCol').value;
+      const systemPrompt = row[sysProm] || '';
+
+      const userCols = headers.filter(h => h !== sysProm);
+      const userMsg = userCols.map(h => `${h}: ${row[h]}`).join('\n');
+
+      const btn = document.getElementById('runLLMBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner"></div> Running…';
+
+      const wrap = document.getElementById('llmResponseWrap');
+      const respEl = document.getElementById('llmResponse');
+      wrap.style.display = 'block';
+      respEl.className = 'llm-response visible loading';
+      respEl.textContent = 'Sending request to local backend…';
+
+      try {
+        const model = document.getElementById('modelSelect').value;
+
+        // Point the fetch call to your local Python server instead of OpenRouter
+        const res = await fetch('http://localhost:8000/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: model,
+            system_prompt: systemPrompt,
+            user_message: userMsg
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || JSON.stringify(data));
+
+        // The backend will return the exact text string
+        const text = data.reply || '(empty response)';
+        respEl.className = 'llm-response visible';
+        respEl.textContent = text;
+
+        if (text.length < 120 && !document.getElementById('subCategoryInput').value) {
+          document.getElementById('subCategoryInput').value = text.trim();
+        }
+      } catch (err) {
+        respEl.className = 'llm-response visible';
+        respEl.style.color = 'var(--red)';
+        respEl.textContent = '⚠ Error: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '▶ Run LLM';
+      }
+    }
+
+    // ── Save Annotation ────────────────────────────────────────────────
+    function saveAnnotation() {
+      if (currentIdx === null) return;
+      const category = document.getElementById('categoryInput').value.trim();
+      const subCategory = document.getElementById('subCategoryInput').value.trim();
+
+      if (!category && !subCategory) {
+        if (!confirm('Both Category and Label are empty. Save anyway?')) return;
+      }
+
+      // 1. Update memory state
+      rows[currentIdx].__category = category;
+      rows[currentIdx].__sub_category = subCategory;
+      rows[currentIdx].__processed = true;
+
+      closeModal();
+
+      // 2. Capture the actual active page directly from the DOM's pagination links
+      let activePage = dataTableInstance ? dataTableInstance._currentPage : 1;
+      const activeLink = document.querySelector('.dataTable-pagination .active a');
+      if (activeLink) {
+        activePage = parseInt(activeLink.textContent, 10);
+      }
+
+      // 3. Re-render the table and pass the active page back to it
+      renderTable(activePage);
+    }
+  </script>
+</body>
+
+</html>

@@ -1,8 +1,14 @@
 pandas
 requests
 tqdm
-dotenv
 matplotlib
 seaborn
 scipy
 mlxtend
+fastapi
+uvicorn
+python-dotenv
+httpx
+starlette
+pydantic
+python-multipart

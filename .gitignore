@@ -235,3 +235,7 @@ data/pr_reviews_combined.csv
 data/pr_timeline_combined.csv
 data/pull_request_combined.csv
 data/context_files_commits_metadata.csv
+data/commit_files_results.csv
+
+.$*
+*.parquet

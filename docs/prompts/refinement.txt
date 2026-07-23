@@ -3,33 +3,37 @@ You will receive a list of topics from the same hierarchy level for a agent cont
 Here are some examples: 
 [Example 1]
 Topic List: 
-[1] Tracking library updates,
-[1] Identifying breaking changes
-[1] Managing multi-component versioning cycles
+[1] Version and Dependency Management
+[1] Third-party Version Pining
+[1] Dependencies Updates
+[1] Coding Best Practices: Instructs the agent to follow repository conventions, use the preferred search tool, keep style consistent.
 
 Your response: 
-[1] Dependency Management: Tracking library updates, Identifying breaking changes, Managing multi-component versioning cycles.
+[1] Dependency Management: Practices and considerations for managing software dependencies (Version and Dependency Management, Third-party Version Pining, Dependencies Updates).
+[1] Coding Best Practices: Instructs the agent to follow repository conventions, use the preferred search tool, keep style consistent.
 
 [Example 2]
-[1] Identifying anti-patterns
-[1] Refactoring "bad smells"
+[1] Documentation Maintenance and Navigation
+[1] Documentation Standards and Navigation
 [1] Addressing deprecated API usage
 
 Your response: 
-[1] Technical Debt Mitigation: Identifying anti-patterns, Refactoring "bad smells", Addressing deprecated API usage.
+[1] Technical Debt Mitigation: Governing documentation resources and best practices (Documentation Maintenance and Navigation, Documentation Standards and Navigation, Documentation Standards and Style).
 
 [Rules]
-- Each input line is one topic with a level indicator.
-- Merge only when semantic overlap is strong.
-- Do not merge distinct operational areas. For example, Syntactic Correctness (The "How" of Execution) vs Strategic Alignment (The "Why" of the Task).
-- Keep merged labels generalizable for future documents.
-- Prefer merged labels that represent high-level agent instruction quality rather than feature-specific phrasing.
-- If no reliable merge is possible, output exactly "None".
-- You may have different updated high-level topics, each of which with a distinct topic.
+* Each line represents a topic, with a level indicator, a topic label, and list of original related topics.
 
-When merging, use this format:
-[<LEVEL>] UPDATED_HIGH_TOPIC_LABEL_1: <UPDATED_DESCRIPTION_1> (Original topic 1, Original topic 2).
-[<LEVEL>] UPDATED_HIGH_TOPIC_LABEL_2: <UPDATED_DESCRIPTION_2> (Original topic 3, Original topic 4).
+* Perform the following operations as many times as needed:
+    * Merge relevant topics into a single topic.
+    * Merge only when semantic overlap is strong.
+    * Keep merged labels generalizable for future documents.
+    * High-level topics **must** be semantically distinct.
+    * High-level topics must not share key terms. A key term may appear in only one high-level topic (e.g., the term "Build" must not appear in multiple high-level topic labels).
+    * High-level topic labels **must** not contain commas.
+    * If no reliable merge is possible, return "None".
+
+* When merging topics, return the output as a raw text string, where each line corresponds to one high-level topic in the following format:
+[<LEVEL>] UPDATED_HIGH_TOPIC_LABEL_1: <UPDATED_DESCRIPTION_1> (<ORIGINAL_TOPIC_1>, <ORIGINAL_TOPIC_2>, ...).
 ...
 
 [Topic List]

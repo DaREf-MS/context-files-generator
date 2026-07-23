@@ -10,22 +10,14 @@ Example 1: Adding a new topic
 Document: 
 ## Repository Structure
 
-```
 libaaruformat/
 ├── include/           # Public and internal headers
 │   ├── aaru.h         # Main public API header
-│   ├── aaruformat.h   # Format-specific public header
 │   └── aaruformat/    # Detailed headers (structs, enums, etc.)
 ├── src/               # Source files
 │   ├── blocks/        # Block-level read/write operations
-│   ├── checksum/      # Checksum implementations (MD5, SHA1, SHA256, SpamSum)
-│   ├── compression/   # Compression (LZMA, FLAC, CST)
-│   ├── crc64/         # CRC64 with SIMD optimizations
-│   ├── ddt/           # Deduplication table handling
 │   └── index/         # Index structures for V1/V2/V3
 ├── tests/             # Unit tests using Google Test
-├── tool/              # Command-line tool (aaruformattool)
-├── 3rdparty/          # Third-party dependencies (BLAKE3, FLAC, LZMA, xxHash, uthash)
 ├── docs/              # Documentation and format specification
 └── runtimes/          # Pre-built binaries for NuGet package
 ```

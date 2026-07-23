@@ -1,0 +1,12 @@
+Repository File Statistics Summary
+==================================
+
+Total valid projects analyzed: 430
+
+Projects with >= 2 context files:
+  Count: 269
+  Percentage: 62.56%
+
+Projects containing >= 1 context file with > 1 version:
+  Count: 404
+  Percentage: 93.95%
