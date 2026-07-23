@@ -1,0 +1,824 @@
+# SpaceCat Audit Worker
+
+> SpaceCat Audit Worker for auditing edge delivery sites.
+
+## Status
+[![codecov](https://img.shields.io/codecov/c/github/adobe-rnd/spacecat-audit-worker.svg)](https://codecov.io/gh/adobe-rnd/spacecat-audit-worker)
+[![CircleCI](https://img.shields.io/circleci/project/github/adobe-rnd/spacecat-audit-worker.svg)](https://circleci.com/gh/adobe-rnd/spacecat-audit-worker)
+[![GitHub license](https://img.shields.io/github/license/adobe-rnd/spacecat-audit-worker.svg)](https://github.com/adobe-rnd/spacecat-audit-worker/blob/master/LICENSE.txt)
+[![GitHub issues](https://img.shields.io/github/issues/adobe-rnd/spacecat-audit-worker.svg)](https://github.com/adobe-rnd/spacecat-audit-worker/issues)
+[![LGTM Code Quality Grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/adobe-rnd/spacecat-audit-worker.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/adobe-rnd/spacecat-audit-worker)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+
+## Installation
+
+```bash
+$ npm install @adobe/spacecat-audit-worker
+```
+
+## Usage
+
+See the [API documentation](docs/API.md).
+
+## Development
+
+### Build
+
+```bash
+$ npm install
+```
+
+### Test
+
+```bash
+$ npm test
+```
+
+### Lint
+
+```bash
+$ npm run lint
+```
+
+## Message Body Formats
+
+Audit worker consumes the `AUDIT_JOBS_QUEUE` queue, performs the requested audit, then queues the result to `AUDIT_RESULTS_QUEUE` for the interested parties to consume later on.
+
+Expected message body format in `AUDIT_JOBS_QUEUE` is:
+
+```json
+{
+  "type": "string",
+  "siteId": "string"
+}
+```
+
+Output message body format sent to `AUDIT_RESULTS_QUEUE` is:
+
+```json
+{
+  "type": "string",
+  "url": "string",
+  "auditContext": "object",
+  "auditResult": "object"
+}
+```
+
+## How to Run Locally
+
+**Prerequisite:** Connection to Adobe Corp VPN is required for accessing KLAM and Vault.
+
+### 1. Using `nodemon` and AWS Credentials
+
+Everyone working on Spacecat should have access to the development environments via [KLAM](https://klam.corp.adobe.com/). 
+If you don’t have access, please refer to the engineering onboarding guide or contact your Spacecat team representative.
+
+After logging into KLAM, you’ll receive the following credentials required to access AWS resources such as DynamoDB and S3 for local development:
+
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_SESSION_TOKEN`
+
+**IMPORTANT: DO NOT USE THE AWS TOKENS FROM KLAM PRODUCTION PROFILES. USE ONLY DEV TOKENS.**
+
+
+### Steps to use `nodemon`
+
+#### 1. Configure Local Environment Variables
+
+Both development scripts (`npm start` and `npm run start:unpacked`) require environment variables to be set. The **`start:unpacked`** script uses [dotenv](https://github.com/motdotla/dotenv) to automatically load them from a `.env` file in the project root. For **`npm start`**, you need to manually export the variables in your shell or use a tool to load `.env` before running the command.
+
+The `.env` file should contain:
+
+1. **AWS Credentials** (from KLAM) for accessing DynamoDB, S3, and other AWS services
+2. **Application Secrets** required by various audits (API keys, service endpoints, etc.)
+
+**Creating your `.env` file:**
+
+Create a `.env` file in the root directory with the following structure:
+
+```bash
+# AWS Credentials (from KLAM - use DEV profile only)
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=<your-access-key-from-klam>
+AWS_SECRET_ACCESS_KEY=<your-secret-key-from-klam>
+AWS_SESSION_TOKEN=<your-session-token-from-klam>
+
+# Core Spacecat Configuration
+DYNAMO_TABLE_NAME_DATA=spacecat-services-data
+S3_SCRAPER_BUCKET_NAME=spacecat-scraper-results
+
+# Add additional secrets as needed for specific audits
+# Example: AHREFS_API_KEY=your-key-here
+# Example: SLACK_BOT_TOKEN=your-token-here
+```
+
+**Where to get application secrets:**
+
+Application secrets (API keys, tokens, etc.) are stored in AWS Secrets Manager. You can retrieve them using:
+
+```bash
+# Fetch secrets from AWS Secrets Manager and save to .env
+./scripts/populate-env.sh
+```
+
+This script pulls all secrets from `/helix-deploy/spacecat-services/audit-worker/latest` and appends them to your `.env` file.
+
+**Important Notes:**
+- **Never commit `.env` to git** - it's already in `.gitignore`
+- **Use only DEV credentials from KLAM** - never production tokens
+- **Refresh AWS credentials regularly** - KLAM tokens expire after a few hours
+- Only `npm run start:unpacked` automatically loads `.env` via dotenv
+- For `npm start`, either export variables manually or use `source .env` (with proper format)
+
+#### 2. Run/Debug with `npm start` (Source Mode)
+
+Once your `.env` file is set up, you'll need to export the environment variables before starting the dev server.
+
+**Option A: Export variables in your shell**
+```bash
+export AWS_REGION=us-east-1
+export AWS_ACCESS_KEY_ID=<your-key>
+export AWS_SECRET_ACCESS_KEY=<your-secret>
+export AWS_SESSION_TOKEN=<your-token>
+# ... export other variables
+npm start
+```
+
+**Option B: Use a shell script to source `.env`**
+```bash
+# Make sure your .env file has proper export syntax:
+# export AWS_REGION=us-east-1
+# export AWS_ACCESS_KEY_ID=...
+
+source .env
+npm start
+```
+
+This runs the source code directly with hot-reloading. To use breakpoints, make sure to use the debugging tools provided by your IDE (e.g., VSCode, WebStorm, etc.).
+
+**Note:** `npm start` does **not** automatically load `.env` - you must set environment variables manually. The `test/dev/server.mjs` script relies on `process.env` already being populated.
+
+#### 3. Run/Debug with `npm run start:unpacked` (Bundle Mode)
+
+To test the **actual bundled Lambda artifact** that gets deployed to AWS, use the `start:unpacked` script. This is useful for debugging bundle-specific issues like missing dependencies or runtime module resolution problems.
+
+**Steps:**
+
+1. **Ensure your `.env` file is configured** (see step 1 above)
+   
+   Unlike `npm start`, the `start:unpacked` script (`test/dev/server-unpacked.mjs`) uses `dotenv` to **automatically load** your `.env` file. No manual exports needed! The bundled code will also attempt to fetch additional secrets from AWS Secrets Manager using the path `/helix-deploy/spacecat-services/audit-worker/latest`.
+
+2. **Build the bundle:**
+   ```bash
+   npm run build
+   ```
+
+3. **Prepare the unpacked bundle:**
+   ```bash
+   # Remove old artifacts
+   rm -rf dist/spacecat-services/unpacked
+   
+   # Unzip the bundle into the unpacked directory
+   cd dist/spacecat-services
+   unzip audit-worker@*.zip -d unpacked/
+   cd ../..
+   ```
+
+4. **Start the dev server:**
+   ```bash
+   npm run start:unpacked
+   ```
+   
+   You should see output like:
+   ```
+   ✓ Loaded .env from: /path/to/.env
+   Unpacked bundle loaded successfully (using lambda adapter)
+   loaded 23 package parameter in 408ms
+   loaded 82 package parameter in 5374ms
+   Started development server at http://localhost:3000/
+   ```
+
+5. **Attach the Chrome debugger:**
+   - Open Chrome and navigate to `chrome://inspect`
+   - Click "Configure..." and ensure `localhost:9229` is listed
+   - Under "Remote Target", click "inspect" on the running Node process
+   - Set breakpoints in the bundled code at `dist/spacecat-services/unpacked/index.js`
+
+**Note:** The bundled version reflects the exact production runtime behavior, including:
+- How helix-deploy packages dependencies
+- How secrets are loaded from AWS Secrets Manager
+- How the Lambda adapter processes requests
+
+#### 3. Trigger an Audit
+
+With the server running, you can trigger an audit using a `curl` POST request. The request body should include the audit type and `siteId`:
+
+```json
+{
+  "type": "<audit handler name>",
+  "siteId": "<siteId>"
+}
+```
+
+- A list of audit handler names can be found in the [index.js file](https://github.com/adobe/spacecat-audit-worker/blob/main/src/index.js#L45).
+- You can retrieve a `siteId` using:
+    - The [Spacecat API](https://opensource.adobe.com/spacecat-api-service/#tag/site/operation/getSiteByBaseUrl)
+    - The Slack command: `@spacecat-dev get site domain.com`
+
+Example `curl` request to trigger the "apex" audit:
+
+```bash
+curl -X POST http://localhost:3000 \
+     -H "Content-Type: application/json" \
+     -d '{ "type": "apex", "siteId": "9ab0575a-c238-4470-ae82-9d37fb2d0e78" }'
+```
+
+#### 4. Inspect the Audit Result in DynamoDB
+
+Once the audit completes, the results are saved to DynamoDB by default (unless configured otherwise).
+
+To retrieve the audit result, use the [Spacecat API](https://opensource.adobe.com/spacecat-api-service/#tag/audit/operation/getLatestAuditForSite).
+
+For example, to fetch the result for the "apex" audit triggered above:
+
+```bash
+curl -H "x-api-key: <YOUR_API_KEY>" \
+     "https://spacecat.experiencecloud.live/api/ci/sites/9ab0575a-c238-4470-ae82-9d37fb2d0e78/latest-audit/apex"
+```
+
+**Note:**  
+Always verify the timestamp of the returned audit result. If the audit failed to save (e.g., due to a bug), you might receive results from a previous run.
+
+
+
+
+### 2. Using AWS SAM and Docker.
+
+1. Ensure you have [Docker](https://docs.docker.com/desktop/setup/install/mac-install/), [AWS SAM](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html) and [jq](https://jqlang.org/) installed.
+2. Login to AWS using [KLAM](https://klam.corp.adobe.com/) and login with your [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
+    * KLAM dev project: `SpaceCat Development (AWS3338)`
+3. To provide secrets to the audit, please run `./scripts/populate-env.sh` once. It will fetch all secrets from the AWS Secret Manager.
+4. To run the audit locally, execute the following commands:
+    ```bash
+    source env.sh
+    npm run local-build
+    npm run local-run
+    ```
+5. Starting point of the execution is `src/index-local.js`. Output of the audit can be found in `output.txt`.
+6. To hot reload any changes in the `/src` folder, you can use `npm run local-watch`. Note: This will require to run `npm run local-build` at least once beforehand.
+
+If you need to add additional secrets, make sure to adjust the Lambda `template.yml` accordingly.
+
+
+## Audit Worker Flow
+
+![SpaceCat (Star Catalogue) - Audit Flow](https://github.com/adobe/spacecat-audit-worker/assets/1171225/78632887-3edf-4aee-b28a-4cecc3c28fc8)
+
+
+## What is a Spacecat Audit
+
+A Spacecat audit is an operation designed for various purposes, including inspection, data collection, verification, and more, all performed on a given `URL`. Spacecat supports two types of audits:
+
+1. **Traditional (Runner-based) Audits**: Single-function audits that execute their logic in one pass. Best for straightforward checks like uptime monitoring or performance scoring.
+
+2. **Step-based Audits**: Multi-step workflows where each step can be processed by different specialized workers. Ideal for complex scenarios requiring different processing capabilities or coordination between multiple services.
+
+Spacecat audits run periodically: weekly, daily, and even hourly. By default, the results of these audits are automatically stored in DynamoDB and sent to the `audit-results-queue`. The results can then be queried by type via [the Spacecat API](https://opensource.adobe.com/spacecat-api-service/#tag/audit).
+
+## Audit Steps
+
+A Spacecat audit consists of seven steps, six of which are provided by default. The only step that typically changes between different audits is the core runner, which contains the business logic.
+
+1. **Site Provider**: This step reads the message with `siteId` information and retrieves the site object from the database. By default, the `defaultSiteProvider` reads the site object from the Star Catalogue. This step can be overridden.
+1. **Org Provider**: This step retrieves the organization information from the Star Catalogue. This step can be overridden.
+1. **URL Resolver**: This step calculates which URL to run the audit against. By default, the `defaultUrlResolver` sends an HTTP request to the site's `baseURL` and returns the `finalURL` after following the redirects. This step can be overridden.
+1. **Runner**: The core function that contains the audit's business logic. **No default runner is provided**. The runner should return an object with `auditResult`, which holds the audit result, and `fullAuditRef`, a string that holds a reference (often a URL) to the audit.
+1. **Persister**: The core function that stores the `auditResult`, `fullAuditRef`, and the audit metadata. By default, the `defaultPersister` stores the information back in the Star Catalogue.
+1. **Message Sender**: The core function that sends the audit result to a downstream component via a message (queue, email, HTTP). By default, the `defaultMessageSender` sends the audit result to the `audit-results-queue` in Spacecat.
+1. **Post Processors**: A list of post-processing functions that further process the audit result for various reasons. By default, no post processor is provided. These should be added only if needed.
+
+## How to create a new Audit
+
+When implementing a new audit, first decide which type of audit best suits your needs:
+
+- Choose a **Traditional (Runner-based) Audit** when:
+  - Your audit logic can execute in a single pass
+  - You don't need to coordinate with other specialized workers
+  - The processing time fits within Lambda execution limits
+  - Example: Checking site uptime, collecting CWV metrics
+
+- Choose a **Step-based Audit** when:
+  - Your audit requires multiple specialized processing steps
+  - You need to coordinate with other workers (e.g., content scrapers)
+  - Processing might exceed Lambda execution limits
+  - Example: Content analysis requiring scraping, processing, and analysis steps
+
+### Creating a Traditional Audit
+
+To create a traditional audit, you'll need to create an audit handler function. This function should accept a `url` and a `context` (see [HelixUniversal](https://github.com/adobe/helix-universal/blob/main/src/adapter.d.ts#L120) ) object as parameters, and it should return an `auditResult` along with `fullAuditRef`. Here's an example:
+
+```js
+export async function auditRunner(url, context) {
+
+  // your audit logic goes here...
+
+  return {
+    auditResult: results,
+    fullAuditRef: baseURL,
+  };
+}
+
+export default new AuditBuilder()
+  .withRunner(auditRunner)
+  .build();
+
+```
+
+### Creating a Step-based Audit
+
+For step-based audits, use the `addStep()` method...
+
+### How to customize audit steps
+
+All audits share common components, such as persisting audit results to a database or sending them to SQS for downstream components to consume. These common functionalities are managed by default functions. However, if desired, you can override them as follows:
+
+```js
+export async function auditRunner(url, context) {
+
+  // your audit logic goes here...
+
+  return {
+    auditResult: results,
+    fullAuditRef: baseURL,
+  };
+}
+
+export async function differentUrlResolver(site) {
+  // logic to override to default behavior of the audit step
+
+  return 'url';
+}
+
+export default new AuditBuilder()
+  .withUrlResolver(differentUrlResolver)
+  .withRunner(auditRunner)
+  .build();
+
+```
+
+### How to prevent audit result to sent to SQS queue
+
+Using a noop messageSender, audit results might not be sent to the audit results SQS queue:
+
+```js
+export async function auditRunner(url, context) {
+
+  // your audit logic goes here...
+
+  return {
+    auditResult: results,
+    fullAuditRef: baseURL,
+  };
+}
+
+export default new AuditBuilder()
+  .withRunner(auditRunner)
+  .withMessageSender(() => {}) // no-op message sender
+  .build();
+
+```
+
+### How to add a custom post processor
+
+You can add a post-processing step for your audit using `AuditBuilder`'s `withPostProcessors` function. The list of post-processing functions will be executed sequentially after the audit run.
+
+Post-processor functions take two params: `auditUrl` and `auditData` as following. `auditData` object contains following properties:
+
+```
+auditData = {
+  siteId: string,
+  isLive: boolean,
+  auditedAt: string,
+  auditType: string,
+  auditResult: object,
+  fullAuditRef: string,
+};
+```
+
+Here's the full example:
+
+```js
+export async function auditRunner(url, context) {
+
+  // your audit logic goes here...
+
+  return {
+    auditResult: results,
+    fullAuditRef: baseURL,
+  };
+}
+
+async function postProcessor(auditUrl, auditData, context) {
+  // your post-processing logic goes here
+  // you can obtain the dataAccess from context
+  // { dataAccess } = context;
+}
+
+export default new AuditBuilder()
+  .withRunner(auditRunner)
+  .withPostProcessors([ postProcessor ]) // you can submit multiple post processors
+  .build();
+
+```
+
+### How to add Opportunities and Suggestions
+
+In the handler, the `opportunityAndSuggestions` function is responsible for converting audit data into an opportunity and synchronizing suggestions.
+
+This function utilizes the `convertToOpportunity` function to create or update an opportunity based on the audit data and type.
+
+The `buildKey` function is used to generate a unique key for each suggestion based on specific properties of the audit data.
+
+It then uses the `syncSuggestions` function to map new suggestions to the opportunity and synchronize them.
+
+```js
+import { syncSuggestions } from '../utils/data-access.js';
+import { convertToOpportunity } from '../common/opportunity.js';
+import { createOpportunityData } from './opportunity-data-mapper.js';
+
+export async function opportunityAndSuggestions(auditUrl, auditData, context) {
+  const opportunity = await convertToOpportunity(
+    auditUrl,
+    auditData,
+    context,
+    createOpportunityData,
+    auditType,
+  );
+
+  const { log } = context;
+  
+  // buildKey and SyncSuggestions logic based on the auditType goes here...
+)};
+```
+```js
+export default new AuditBuilder()
+  .withRunner(auditRunner)
+  .withPostProcessors([opportunityAndSuggestions])
+  .build();
+```
+
+
+The logic for converting to an opportunity is in `common/opportunity.js`. The function `convertToOpportunity` is used to create a new opportunity or update an existing one based on the audit type. The function takes the audit URL, audit data, context, createOpportunityData, auditType, and props as arguments. It first fetches the opportunities for the site. If the opportunity is not found, it creates a new one. If the opportunity is found, it updates the existing one with the new data. The function returns the opportunity entity.
+
+
+How to map the opportunity data in the handler's `opportunity-data-mapper.js` file:
+
+```js
+export function createOpportunityData(parameters) {
+  return {
+    runbook: 'runbook',
+    origin: 'origin',
+    title: 'title',
+    description: 'description',
+    guidance: {
+      steps: [
+        'step1',
+        'step2',
+      ],
+    },
+    tags: ['tag1'],
+    data: {data},
+  };
+}
+```
+
+
+### Auto-Detection of Publish and Regression Detection
+
+The `syncSuggestionsWithPublishDetection` function extends `syncSuggestions` with automatic detection of when fixes are published and regression detection.
+
+#### Features
+
+1. **Reconcile Disappeared Suggestions**: When a suggestion disappears from audit data (e.g., a broken backlink is fixed), the system can automatically:
+   - Check if the issue was fixed using the AI-suggested fix (`isIssueFixedWithAISuggestion` callback)
+   - Mark the suggestion as `FIXED`
+   - Create a `FixEntity` to track the fix
+
+2. **Publish Deployed Fix Entities**: After reconciliation, the system verifies deployed fixes on production:
+   - Calls `isIssueResolvedOnProduction` callback for each deployed fix
+   - Moves `FixEntity` from `DEPLOYED` to `PUBLISHED` status when verified
+
+3. **Regression Detection**: When a previously `FIXED` suggestion reappears in audit data:
+   - Checks if all fix entities are fully published
+   - If so, logs a warning about potential regression
+
+#### Usage
+
+```js
+import { syncSuggestionsWithPublishDetection } from '../utils/data-access.js';
+
+await syncSuggestionsWithPublishDetection({
+  context,
+  opportunity,
+  newData: auditResult.items,
+  buildKey: (item) => item.uniqueKey,
+  mapNewSuggestion: (item) => ({ type: 'FIX', data: item }),
+  // Optional: Check if disappeared suggestion was fixed using AI suggestion
+  isIssueFixedWithAISuggestion: async (suggestion) => {
+    // Return true if the issue was fixed using the suggested fix
+    return checkIfFixedWithSuggestion(suggestion);
+  },
+  // Optional: Build fix entity payload when issue is fixed
+  buildFixEntityPayload: (suggestion, opportunity, isAuthorOnly) => ({
+    opportunityId: opportunity.getId(),
+    status: isAuthorOnly ? 'DEPLOYED' : 'PUBLISHED',
+    suggestions: [suggestion.getId()],
+  }),
+  // Optional: Verify if issue is resolved on production
+  isIssueResolvedOnProduction: async (suggestion) => {
+    // Return true if the issue is verified fixed on production
+    return verifyFixOnProduction(suggestion);
+  },
+});
+```
+
+#### Author-Only Opportunity Types
+
+Some opportunity types represent changes that only affect the authoring environment (no publish step required). For these types:
+
+- Fix entities are created with `DEPLOYED` status instead of `PUBLISHED`
+- The publish verification step is skipped
+- Regression detection checks for `DEPLOYED` fix entities instead of `PUBLISHED`
+
+Currently defined author-only types:
+- `security-permissions-redundant`
+- `security-permissions`
+
+To add a new author-only type, add it to the `AUTHOR_ONLY_OPPORTUNITY_TYPES` array in `src/utils/data-access.js`.
+
+### How to add auto-suggest to an audit
+A new auto-suggest feature can be added as a post processor step to the existing audit.
+
+The `AuditBuilder` is chaining all post processors together and passing the `auditData` object to each post processor.
+The `auditData` object can be updated by each post processor and the updated `auditData` object will be passed to the next post processor.
+If the `auditData` object is not updated by a post processor, the previous `auditData` object will be used.
+
+The auto-suggest post processor should verify if the site is enabled for suggestions and if the audit was run successfully:
+
+```js
+export const generateSuggestionData = async (finalUrl, auditData, context, site) => {
+  const { dataAccess, log } = context;
+  const { Configuration } = dataAccess;
+
+  if (auditData.auditResult.success === false) {
+    log.info('Audit failed, skipping suggestions generation');
+    return { ...auditData };
+  }
+
+  const configuration = await Configuration.findLatest();
+  if (!configuration.isHandlerEnabledForSite('[audit-name]-auto-suggest', site)) {
+    log.info('Auto-suggest is disabled for site');
+    return {...auditData};
+  }
+}
+```
+
+```js
+export default new AuditBuilder()
+  .withRunner(auditRunner)
+  .withPostProcessors([ generateSuggestionData, convertToOpportunity ])
+  .build();
+```
+
+## Step-Based Audits
+
+Spacecat supports multi-step audit workflows where each step can be processed by different workers. This enables complex audit scenarios that may require different processing capabilities or need to be split across multiple services.
+
+### Creating a Step-Based Audit
+
+Here's an example of how to create a step-based audit:
+
+```js
+import { Audit } from '@adobe/spacecat-shared-data-access';
+
+const { AUDIT_STEP_DESTINATIONS } = Audit;
+
+export default new AuditBuilder()
+  // First step: Prepare content scraping
+  .addStep('prepare', async (context) => {
+    const { site, finalUrl, log } = context;
+    log.info(`Preparing content scrape for ${site.getBaseURL()}`);
+    
+    // First step MUST return auditResult and fullAuditRef
+    return {
+      auditResult: { status: 'preparing' },
+      fullAuditRef: `s3://content-bucket/${site.getId()}/raw.json`,
+      // Additional data for content scraper
+      urls: [{ url: finalUrl }],
+      siteId: site.getId(),
+    };
+  }, AUDIT_STEP_DESTINATIONS.CONTENT_SCRAPER)
+
+  // Second step: Process results
+  .addStep('process', async (context) => {
+    const { site, audit } = context;
+    // Access previous audit data via audit.getFullAuditRef()
+    return {
+      type: 'content-import',
+      siteId: site.getId(),
+    };
+  }, AUDIT_STEP_DESTINATIONS.IMPORT_WORKER)
+
+  // Final step: Analyze results (no destination needed for final step)
+  .addStep('analyze', async (context) => {
+    const { audit } = context;
+    const results = await analyzeContent(audit.getFullAuditRef());
+    return {
+      status: 'complete',
+      findings: results,
+    };
+  })
+  .build();
+```
+
+### Step Requirements
+
+1. **First Step**
+   - Must return an object containing both `auditResult` and `fullAuditRef`
+   - These are used to create the initial audit record
+   - Receives `finalUrl` in context (resolved from site's baseURL)
+   - No previous audit data available in context
+
+2. **Intermediate Steps**
+   - Must specify a destination queue via `AUDIT_STEP_DESTINATIONS`
+   - Return data will be formatted according to destination requirements
+   - Have access to audit record via `context.audit`
+   - Can access previous step data via `audit.getFullAuditRef()`
+
+3. **Final Step**
+   - Must not specify a destination
+   - Return data will be stored as the final audit result
+   - Has access to all previous audit data via `context.audit`
+
+### Step Context
+
+Each step receives a context object containing:
+- `site`: The site being audited (with methods like `getBaseURL()`, `getId()`)
+- `audit`: The audit record (undefined for first step)
+- `finalUrl`: The resolved URL (only in first step)
+- `scrapeResultPaths`: Map(url -> path) for all successfully scraped URLs (only after scrape step (SCRAPE_CLIENT only))
+- Standard context properties (`log`, `dataAccess`, etc.)
+
+### Destinations
+
+The `AUDIT_STEP_DESTINATIONS` enum defines supported destination queues. Each destination has specific payload format requirements:
+
+```js
+CONTENT_SCRAPER: {
+  // Formats payload for content scraper queue
+  payload: {
+    urls: Array<{url: string}>,
+    jobId: string,
+    auditContext: {
+      next: string,
+      auditId: string,
+      auditType: string,
+      fullAuditRef: string
+    }
+  }
+}
+
+IMPORT_WORKER: {
+  // Formats payload for import worker queue
+  payload: {
+    type: string,
+    siteId: string,
+    auditContext: {
+      next: string,
+      auditId: string,
+      auditType: string,
+      fullAuditRef: string
+    }
+  }
+}
+
+SCRAPE_CLIENT: {
+    // Formats payload for scrape client
+    payload: {
+        urls: Array<{url: string}>,
+        processingType: string,
+        options: object,
+        maxScrapeAge: number,
+        auditData: {
+          siteId: string,
+          completionQueueUrl: string, 
+          auditContext: {
+            next: string,
+            auditId: string,
+            auditType: string,
+            fullAuditRef: string
+          }
+        }
+    }
+}
+```
+
+### Error Handling
+
+The step-based audit implementation includes several validations:
+
+1. **Step Configuration**
+   - All steps except the last must specify a valid destination
+   - Step handlers must be functions
+   - First step must return both `auditResult` and `fullAuditRef`
+
+2. **Audit Context**
+   - For subsequent steps, audit ID must be valid
+   - Audit record must exist in database
+   - Audit type must match current audit
+
+3. **Destination Validation**
+   - Destinations must be from `AUDIT_STEP_DESTINATIONS`
+   - Each destination must have valid queue URL and payload formatting
+
+If any validation fails, the audit will throw an error and stop processing.
+
+### Message Flow Example
+
+Here's how messages flow between workers in a step-based audit:
+
+```js
+// 1. Initial trigger message to audit-worker
+{
+  "type": "content-audit",
+  "siteId": "123",
+  "auditContext": {}
+}
+
+// 2. After first step, audit-worker sends to content-scraper
+{
+  "urls": [{ "url": "https://example.com" }],
+  "jobId": "audit-456",
+  "auditContext": {
+    "next": "process",
+    "auditId": "audit-456",
+    "auditType": "content-audit",
+    "fullAuditRef": "s3://content-bucket/123/raw.json"
+  }
+}
+
+// 3. Content-scraper completes, sends to audit-worker
+{
+  "type": "content-audit",
+  "siteId": "123",
+  "auditContext": {
+    "next": "process",
+    "auditId": "audit-456",
+    "auditType": "content-audit",
+    "fullAuditRef": "s3://content-bucket/123/raw.json"
+  }
+}
+
+// 4. Audit-worker processes second step, sends to import-worker
+{
+  "type": "content-import",
+  "siteId": "123",
+  "auditContext": {
+    "next": "analyze",
+    "auditId": "audit-456",
+    "auditType": "content-audit",
+    "fullAuditRef": "s3://content-bucket/123/raw.json"
+  }
+}
+
+// 5. Import-worker completes, sends to audit-worker
+{
+  "type": "content-audit",
+  "siteId": "123",
+  "auditContext": {
+    "next": "analyze",
+    "auditId": "audit-456",
+    "auditType": "content-audit",
+    "fullAuditRef": "s3://content-bucket/123/processed.json"
+  }
+}
+
+// 6. Final step completes, audit-worker sends results
+{
+  "type": "content-audit",
+  "url": "https://example.com",
+  "auditContext": {
+    "auditId": "audit-456",
+    "auditType": "content-audit",
+    "fullAuditRef": "s3://content-bucket/123/processed.json"
+  },
+  "auditResult": {
+    "status": "complete",
+    "findings": [/*...*/]
+  }
+}
+```
+
+Each message preserves the `auditContext` to maintain the step chain. The `next` field determines which step runs next, while `auditId` and `fullAuditRef` track the audit state across workers.
+
