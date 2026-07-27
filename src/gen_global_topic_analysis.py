@@ -1415,8 +1415,8 @@ def generate_topic_explanations_latex(seed=20):
         "Agent Communication, Clarification & Multi-Agent Coordination": "Agents",
         "Session/Task Tracking & Agent Working Files": "Agents",
         "Logging & Observability": "Observability",
-        "Performance, Scaling & Resource Limits": "Observability",
-        "Deployment, Infrastructure & Service Operations": "Observability",
+        "Performance, Scaling & Resource Limits": "Operations & Performance",
+        "Deployment, Infrastructure & Service Operations": "Operations & Performance",
         "Cross-Platform, Terminal & Feature-Gating Constraints": "Platform",
         "Internationalization & Localization": "Platform",
         "Accessibility": "Platform"
@@ -1807,29 +1807,29 @@ if __name__ == "__main__":
         df_static = df_sorted.drop_duplicates(
             subset=["repo", "context_file"], keep="last")
 
-    print("Deduplicating topics per project...")
-    df_static_dedup = deduplicate_topics_per_project(df_static)
+    # print("Deduplicating topics per project...")
+    # df_static_dedup = deduplicate_topics_per_project(df_static)
 
-    df_last_topic = keep_last_topics_per_project(df_sorted)
+    # df_last_topic = keep_last_topics_per_project(df_sorted)
 
-    print("Generating Global Topic Distribution Plot...")
-    plot_global_topic_distribution(
-        df_last_topic, one_version=args.one_version, ai_filter=args.ai_filter)
+    # print("Generating Global Topic Distribution Plot...")
+    # plot_global_topic_distribution(
+    #     df_last_topic, one_version=args.one_version, ai_filter=args.ai_filter)
 
     print("Generating Topic Explanations Dictionary...")
     generate_topic_explanations_latex()
 
-    print("Generating Global Topic Co-occurrence Matrix...")
-    plot_global_topic_cooccurrence(
-        df_static_dedup, one_version=args.one_version, ai_filter=args.ai_filter)
+    # print("Generating Global Topic Co-occurrence Matrix...")
+    # plot_global_topic_cooccurrence(
+    #     df_static_dedup, one_version=args.one_version, ai_filter=args.ai_filter)
 
-    print("Generating Global Project Attribute Boxplots...")
-    plot_global_topic_attributes(
-        df_static_dedup, one_version=args.one_version, ai_filter=args.ai_filter)
+    # print("Generating Global Project Attribute Boxplots...")
+    # plot_global_topic_attributes(
+    #     df_static_dedup, one_version=args.one_version, ai_filter=args.ai_filter)
 
-    print("Generating PR-level Metrics Boxplots...")
-    plot_topic_pr_metrics_boxplots(
-        df_static_dedup, df_all_versions, one_version=args.one_version, ai_filter=args.ai_filter)
+    # print("Generating PR-level Metrics Boxplots...")
+    # plot_topic_pr_metrics_boxplots(
+    #     df_static_dedup, df_all_versions, one_version=args.one_version, ai_filter=args.ai_filter)
 
     # print("Generating Global Association Rules via FP-Growth...")
     # run_global_association_rules(

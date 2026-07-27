@@ -17,17 +17,18 @@ def generate_latex_table(file_path, output_txt_path="latex_table.txt"):
         print(f"Error: The file {file_path} does not exist.")
         return
     
-    # Safely load the Excel using pandas
+    # Safely load the CSV using pandas
     df = pd.read_excel(file_path)
     
-    required_cols = ['description', 'category', 'sub-category', 'definition', 'example']
+    # Updated required columns based on target layout
+    required_cols = ['final_category', 'final_sub_category', 'definition']
     for col in required_cols:
         if col not in df.columns:
             print(f"Error: '{col}' column not found in the CSV file.")
             return
 
     total_rows = len(df)
-    grouped = df.groupby(['category', 'sub-category'])
+    grouped = df.groupby(['final_category', 'final_sub_category'])
     
     summary_data = []
     for (cat, subcat), group in grouped:
@@ -36,14 +37,13 @@ def generate_latex_table(file_path, output_txt_path="latex_table.txt"):
         
         sample_row = group.sample(1).iloc[0]
         
-        definition = escape_latex(sample_row['definition'])
-        example_text = escape_latex(sample_row['example'])
+        # Mapping the definition to the Description column
+        description = escape_latex(sample_row['definition'])
         
         summary_data.append({
-            'Category': escape_latex(cat),
-            'Sub-category': escape_latex(subcat),
-            'Definition': definition,
-            'Example': example_text,
+            'final_category': escape_latex(cat),
+            'final_sub_category': escape_latex(subcat),
+            'Description': description,
             'Count': count,
             'Pct': pct
         })
@@ -51,32 +51,34 @@ def generate_latex_table(file_path, output_txt_path="latex_table.txt"):
     summary_df = pd.DataFrame(summary_data)
     
     # Calculate total counts per category to sort the table properly
-    summary_df['Category_Total'] = summary_df.groupby('Category')['Count'].transform('sum')
+    summary_df['Category_Total'] = summary_df.groupby('final_category')['Count'].transform('sum')
     
     # Sort by Category frequency, then Sub-category frequency, pinning "Others" to the bottom
-    is_others = summary_df['Category'].str.lower() == 'others'
+    is_others = summary_df['final_category'].str.lower() == 'others'
     summary_df = summary_df.assign(Is_Others=is_others).sort_values(
         by=['Is_Others', 'Category_Total', 'Count'], 
         ascending=[True, False, False]
     )
     
-    # Build the longtable structure matching the target format
+    # Build the longtable structure matching the target format exactly
     latex_lines = [
-        "\\begin{longtable}{|@{}p{2.2cm}|p{2.15cm}|p{3.5cm}|p{4.2cm} |r|r@{}|}",
+        "\\afterpage{",
+        "\\footnotesize",
+        "\\begin{longtable}{|p{2.2cm}|p{2.35cm}|p{5.35cm}|r|r@{}|}",
         "\\caption{An overview of developer edits to ACFs according to the identified topics. The distribution of edits highlights frequent omissions in agent instructions} \\label{tab:categorized_data} \\\\",
         "\\hline",
-        "\\textbf{Category} & \\textbf{Sub-category} & \\textbf{Definition} & \\textbf{Example} & \\textbf{\\#} & \\textbf{\\%} \\\\",
+        "\\textbf{Category} & \\textbf{Sub-category} & \\textbf{Description} & \\textbf{\\#} & \\textbf{\\%} \\\\",
         "\\hline",
         "\\endfirsthead",
         "",
-        "\\multicolumn{6}{c}{{\\tablename\\ \\thetable{} -- continued from previous page}} \\\\",
+        "\\multicolumn{5}{c}{{\\tablename\\ \\thetable{} -- continued from previous page}} \\\\",
         "\\hline",
-        "\\textbf{Category} & \\textbf{Sub-category} & \\textbf{Definition} & \\textbf{Example} & \\textbf{\\#} & \\textbf{\\%} \\\\",
+        "\\textbf{Category} & \\textbf{Sub-category} & \\textbf{Description} & \\textbf{\\#} & \\textbf{\\%} \\\\",
         "\\hline",
         "\\endhead",
         "",
         "\\hline",
-        "\\multicolumn{6}{r}{{\\itshape Continued on next page}} \\\\",
+        "\\multicolumn{5}{r}{{\\itshape Continued on next page}} \\\\",
         "% \\footempty % Used to prevent duplicate midrules on final page split boundaries",
         "\\endfoot",
         "",
@@ -85,40 +87,39 @@ def generate_latex_table(file_path, output_txt_path="latex_table.txt"):
         ""
     ]
     
-    unique_cats = summary_df['Category'].unique()
+    unique_cats = summary_df['final_category'].unique()
     for cat in unique_cats:
-        cat_df = summary_df[summary_df['Category'] == cat]
+        cat_df = summary_df[summary_df['final_category'] == cat]
         n_rows = len(cat_df)
         
         for i, (_, row) in enumerate(cat_df.iterrows()):
-            subcat = row['Sub-category']
-            definition = row['Definition']
-            example = f"``{row['Example']}''" if row['Example'] else ""
+            subcat = row['final_sub_category']
+            description = row['Description']
             count = row['Count']
             pct_str = f"{row['Pct']:.1f}\\%"
             
             # Format empty rows (like "Others" frequently is)
-            if cat.lower() == 'others' and not row['Definition']:
-                definition = "---"
-                example = "---"
+            if cat.lower() == 'others' and not row['Description']:
+                description = "---"
             
-            # Apply \multirow on the first row of the block
+            # Apply \multirow on the first row of the block, centered as requested
             if i == 0:
-                col1 = f"\\multirow{{{n_rows}}}{{=}}{{{cat}}}"
+                col1 = f"\\multirow{{{n_rows}}}{{=}}{{\\centering {cat}}}"
             else:
                 col1 = ""
                 
-            row_str = f" {col1} & {subcat} & {definition} & {example} & {count} & {pct_str} \\\\"
+            row_str = f" {col1} & {subcat} & {description} & {count} & {pct_str} \\\\"
             latex_lines.append(row_str)
             
-            # Use \hhline inside the category block, \hline between categories
+            # Use \hhline inside the category block, \hline between categories (adjusted to 4 dashes)
             if i < n_rows - 1:
-                latex_lines.append(" \\hhline{~-----}")
+                latex_lines.append(" \\hhline{~----}")
             
         latex_lines.append(" \\hline")
         latex_lines.append("")
         
-    latex_lines.append("\\end{longtable}\n")
+    latex_lines.append("\\end{longtable}")
+    latex_lines.append("}")
     
     latex_table_code = "\n".join(latex_lines)
     
@@ -129,5 +130,5 @@ def generate_latex_table(file_path, output_txt_path="latex_table.txt"):
     print(latex_table_code)
 
 if __name__ == "__main__":
-    input_file = "data/claude_annotated_data_refined.xlsx"
+    input_file = "data/annotated_acf_edits_final.xlsx"
     generate_latex_table(input_file)

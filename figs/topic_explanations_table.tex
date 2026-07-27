@@ -54,15 +54,11 @@
 \hline
 \multirow{1}{=}{\centering Security} & Security, Secrets \& Safe Operations & Multiple rules protect credentials, logs, and operational safety, including not hardcoding secrets and handling production changes carefully. (``避免泄露真实凭证。''; ``不得在仓库中写死凭证或输出到日志；'') & 53.3\% \\
 \hline
-\multirow{5}{=}{\centering Observability} & Debugging, Troubleshooting \& Diagnostics & The guide focuses heavily on diagnosing failures via logs, error searches, device logs, and iterative fix/rerun loops. (``Check for errors FIRST'', ``Inspect CustomAgentLogsTmp/Sandbox/android-device.log'', ``Identify root cause (element not found? crash?)'') & 42.8\% \\
+\multirow{3}{=}{\centering Observability} & Debugging, Troubleshooting \& Diagnostics & The guide focuses heavily on diagnosing failures via logs, error searches, device logs, and iterative fix/rerun loops. (``Check for errors FIRST'', ``Inspect CustomAgentLogsTmp/Sandbox/android-device.log'', ``Identify root cause (element not found? crash?)'') & 42.8\% \\
 \hhline{~||-|-|-|}
  & Error Handling \& Runtime Robustness & The instructions explicitly require safe handling for runtime APIs like `launchCommand`, `getSelectedText()`, and toast errors, with prescribed try-catch patterns and failure behavior. (``Ensure `launchCommand` is always wrapped in a try-catch block.'', ``Ensure `getSelectedText()` has graceful error handling'', ``suggest using `showFailureToast` from `@raycast/utils` for simplification'') & 36.5\% \\
 \hhline{~||-|-|-|}
  & Logging \& Observability & It directs how test and service logs are handled and where operational logs/spans live. ("All test output is automatically logged to `logs/test.log` instead of the console"; "Service logs are in `logs/service.log` (JSONL format - one JSON object per line)"; "OTEL spans are in `logs/otel-spans.jsonl`") & 29.1\% \\
-\hhline{~||-|-|-|}
- & Performance, Scaling \& Resource Limits & It contains explicit performance guidance for hot paths, pooling, caching, and threading behavior. (``- **Avoid LINQ in hot paths**'' / ``- **Use object pools extensively**'' / ```Compilation` objects cache semantic information - reuse when possible'') & 24.9\% \\
-\hhline{~||-|-|-|}
- & Deployment, Infrastructure \& Service Operations & It covers live-service tooling and operational server workflows, especially the MCP server and safe output handling. (``py3plex provides a production-ready MCP server'', ``Starting the Server'', ``stdio transport'', ``safe output directory'') & 23.0\% \\
 \hline
 \multirow{2}{=}{\centering Agents} & Agent Communication, Clarification \& Multi-Agent Coordination & It directs agents to think before action, confirm constraints, restate the request, and ask for approval before high-risk operations. (``Think Before Action: perform deep analysis and planning before coding.'' ``Task Start - Choose the strategy that fits the task characteristics. Confirm tool availability plus fallback approaches.'' ``When the user request is scoped ... confirm that no broader refactor is expected'') & 34.0\% \\
 \hhline{~||-|-|-|}
@@ -77,6 +73,10 @@
  & Internationalization \& Localization & The document explicitly requires i18n for user-facing text and points to translation guidance. ("Always use i18n functions for user-facing text"; "Never hard-code UI strings in English or other languages"; "Refer to `/i18n-translation-instruction.md` for translation guidelines") & 9.1\% \\
 \hhline{~||-|-|-|}
  & Accessibility & The document includes explicit accessibility requirements for tables, focusable elements, and visually hidden interactive elements. ("Every `$<$table$>$` / `$<$Table$>$` must have an `aria-label` or `$<$caption$>$`", "Every element with `tabIndex=\{0\}` must have a semantic `role` attribute", "you must also remove it from the keyboard tab order and accessibility tree") & 7.2\% \\
+\hline
+\multirow{2}{=}{\centering Operations & Performance} & Performance, Scaling \& Resource Limits & It contains explicit performance guidance for hot paths, pooling, caching, and threading behavior. (``- **Avoid LINQ in hot paths**'' / ``- **Use object pools extensively**'' / ```Compilation` objects cache semantic information - reuse when possible'') & 24.9\% \\
+\hhline{~||-|-|-|}
+ & Deployment, Infrastructure \& Service Operations & It covers live-service tooling and operational server workflows, especially the MCP server and safe output handling. (``py3plex provides a production-ready MCP server'', ``Starting the Server'', ``stdio transport'', ``safe output directory'') & 23.0\% \\
 \hline
 \end{longtable}
 }
