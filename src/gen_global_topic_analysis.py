@@ -607,7 +607,7 @@ def plot_global_topic_churn(df_all_versions, ai_filter="all"):
     sns.set_theme(style="whitegrid")
     plt.figure(figsize=(14, max(8, len(pivot_df) * 0.4)))
 
-    churn_attrs = ['Added', 'Removed', 'Unchanged']
+    churn_attrs = ['Added', 'Unchanged']
     ax = pivot_df[churn_attrs].plot(
         kind='barh', stacked=True, color=['#3498db', '#bdc3c7', '#e67e22'],
         edgecolor='black', linewidth=0.5, ax=plt.gca()
@@ -630,18 +630,25 @@ def plot_global_topic_churn(df_all_versions, ai_filter="all"):
             start_x = sum(row[churn_attrs][:col_idx])
             if val >= space_threshold:
                 text_color = 'black' if col_name == 'Unchanged' else 'white'
+                # Reduced font size for better box fitting (fontsize=11)
                 ax.text(start_x + val / 2, row_idx, str(int(val)),
-                        va='center', ha='center', fontsize=10, weight='bold', color=text_color)
+                        va='center', ha='center', fontsize=11, weight='bold', color=text_color)
             else:
                 small_vals.append(f"{col_name[0]}: {int(val)}")
 
         if small_vals:
+            # Scaled overflow text to match (fontsize=10)
             ax.text(total_val + (max_x * 0.015), row_idx, " (" + ", ".join(small_vals) + ")",
                     va='center', ha='left', fontsize=9, color='#333333', style='italic', weight='bold')
 
-    plt.xlabel("Occurrences over file versions", fontsize=12)
-    plt.ylabel("TopicGPT labels", fontsize=12)
-    plt.legend(title="Status", loc="lower right", bbox_to_anchor=(1.0, 0.0))
+    # Main label and axis font sizing kept large for article readability
+    plt.xlabel("Occurrences over file versions", fontsize=22, labelpad=14, fontweight='bold')
+    plt.ylabel("TopicGPT labels", fontsize=22, labelpad=14, fontweight='bold')
+    plt.xticks(fontsize=18)
+    plt.yticks(fontsize=18)
+
+    plt.legend(title="Status", title_fontsize='18', fontsize='16',
+               loc="lower right", bbox_to_anchor=(1.0, 0.0))
     plt.tight_layout()
 
     out_img = FIGS_PATH / f"global_topic_churn_over_versions{suffix}.png"
@@ -757,13 +764,8 @@ def plot_global_topic_attributes(df_topics, one_version=False, ai_filter="all"):
             palette=["#3498db", "#e74c3c"], edgecolor="black", linewidth=0.5
         )
 
-        # # DECREASED FONT SIZE: Textual percentages from 12 to 10
-        # for container in ax.containers:
-        #     ax.bar_label(container, fmt='%.1f%%', padding=3, fontsize=10)
-
         # 4. HORIZONTAL ASTERISKS
         x_max = ax.get_xlim()[1]
-        offset = x_max * 0.03
 
         for i, topic in enumerate(plot_data['topic_labels']):
             if p_values.get(topic, 1.0) < 0.05:
@@ -771,19 +773,20 @@ def plot_global_topic_attributes(df_topics, one_version=False, ai_filter="all"):
                 bot_val = plot_data.iloc[i]['Bottom 30%']
                 max_val = max(top_val, bot_val)
 
-                # Place asterisk immediately at the tip of the longest bar (no offset gap)
+                # Scaled asterisk font size
                 ax.text(max_val, i, '*', ha='left', va='center',
-                        fontsize=20, fontweight='bold', color='black')
+                        fontsize=24, fontweight='bold', color='black')
 
         ax.set_xlim(0, x_max + (x_max * 0.1))
 
-        plt.xlabel("% of projects", fontsize=18, labelpad=12)
-        plt.ylabel("TopicGPT labels", fontsize=18, labelpad=12)
-        plt.xticks(fontsize=14)
-        plt.yticks(fontsize=14)
+        # INCREASED FONT SIZES FOR PUBLICATION READABILITY:
+        plt.xlabel("% of projects", fontsize=22, labelpad=14, fontweight='bold')
+        plt.ylabel("TopicGPT labels", fontsize=22, labelpad=14, fontweight='bold')
+        plt.xticks(fontsize=18)
+        plt.yticks(fontsize=18)  # Topic labels
         
-        # MOVED LEGEND: Bottom right, inside the plot, with a small border pad
-        plt.legend(title=f"{attr.capitalize()} Percentiles", title_fontsize='14', fontsize='12',
+        # Legend sizing
+        plt.legend(title=f"{attr.capitalize()} Percentiles", title_fontsize='18', fontsize='16',
                    loc='lower right', borderaxespad=1.5)
         
         plt.tight_layout()
@@ -921,14 +924,8 @@ def plot_topic_pr_metrics_boxplots(df_topics, df_all_versions, one_version=False
             palette=["#2ecc71", "#e74c3c"], edgecolor="black", linewidth=0.5
         )
 
-        # # DECREASED FONT SIZE: Textual percentages from 12 to 10
-        # for container in ax.containers:
-        #     ax.bar_label(container, fmt='%.1f%%', padding=3, fontsize=10)
-
-        # 4. HORIZONTAL ASTERISKS
+        # Asterisk styling
         x_max = ax.get_xlim()[1]
-        offset = x_max * 0.03
-        
         alpha = 0.05 / len(plot_data['topic_labels'])
 
         for i, topic in enumerate(plot_data['topic_labels']):
@@ -937,20 +934,25 @@ def plot_topic_pr_metrics_boxplots(df_topics, df_all_versions, one_version=False
                 bot_val = plot_data.iloc[i]['Bottom 30%']
                 max_val = max(top_val, bot_val)
 
-                # Place asterisk immediately at the tip of the longest bar (no offset gap)
                 ax.text(max_val, i, '*', ha='left', va='center',
-                        fontsize=20, fontweight='bold', color='black')
+                        fontsize=24, fontweight='bold', color='black')
 
         ax.set_xlim(0, x_max + (x_max * 0.1))
 
-        plt.xlabel(x_label, fontsize=18, labelpad=12)
-        plt.ylabel("TopicGPT labels", fontsize=18, labelpad=12) 
-        plt.xticks(fontsize=14)
-        plt.yticks(fontsize=14)
+        # INCREASED FONT SIZES:
+        plt.xlabel(x_label, fontsize=22, labelpad=14, fontweight='bold')
+        plt.ylabel("TopicGPT labels", fontsize=22, labelpad=14, fontweight='bold') 
+        plt.xticks(fontsize=18)
+        plt.yticks(fontsize=18)  # Topic tick labels on y-axis
         
-        # MOVED LEGEND: Bottom right, inside the plot, with a small border pad
-        plt.legend(title=f"{title_prefix} Percentiles", title_fontsize='14', fontsize='12',
-                   loc='lower right', borderaxespad=1.5)
+        # Legend font sizing
+        plt.legend(
+            title=f"{title_prefix} Percentiles", 
+            title_fontsize='18', 
+            fontsize='16',
+            loc='lower right', 
+            borderaxespad=1.5
+        )
         
         plt.tight_layout()
 
@@ -986,7 +988,7 @@ def plot_topic_pr_metrics_boxplots(df_topics, df_all_versions, one_version=False
     for attr in pr_metrics_to_plot:
         if attr in df_prs_filtered.columns:
             plot_percentile_barplot(
-                df_prs_filtered, attr, f"PR {attr.replace('_', ' ').capitalize()}", is_pr_metric=True)
+                df_prs_filtered, attr, f"{attr.replace('_', ' ').capitalize()}", is_pr_metric=True)
 
 
 # -----------------------------------------------------------
@@ -1789,11 +1791,11 @@ if __name__ == "__main__":
     print(f"Applying AI filter: {args.ai_filter}...")
     df_all_versions = filter_by_ai(df_all_versions, args.ai_filter)
 
-    # print("Generating Global Topic Churn...")
-    # plot_global_topic_churn(df_all_versions, ai_filter=args.ai_filter)
+    print("Generating Global Topic Churn...")
+    plot_global_topic_churn(df_all_versions, ai_filter=args.ai_filter)
 
-    print("Generating Global Repo ACF stats...")
-    plot_repo_file_stats(df_all_versions, ai_filter=args.ai_filter)
+    # print("Generating Global Repo ACF stats...")
+    # plot_repo_file_stats(df_all_versions, ai_filter=args.ai_filter)
 
     # df_all_versions_enriched = enrich_with_ai_tools(df_all_versions, CONTEXT_FILES_SUBSET_FILE)
 
@@ -1816,14 +1818,14 @@ if __name__ == "__main__":
     # plot_global_topic_distribution(
     #     df_last_topic, one_version=args.one_version, ai_filter=args.ai_filter)
 
-    print("Generating Topic Explanations Dictionary...")
-    generate_topic_explanations_latex()
+    # print("Generating Topic Explanations Dictionary...")
+    # generate_topic_explanations_latex()
 
     # print("Generating Global Topic Co-occurrence Matrix...")
     # plot_global_topic_cooccurrence(
     #     df_static_dedup, one_version=args.one_version, ai_filter=args.ai_filter)
 
-    # print("Generating Global Project Attribute Boxplots...")
+    # # print("Generating Global Project Attribute Boxplots...")
     # plot_global_topic_attributes(
     #     df_static_dedup, one_version=args.one_version, ai_filter=args.ai_filter)
 
