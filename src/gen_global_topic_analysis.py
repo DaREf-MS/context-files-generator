@@ -15,6 +15,7 @@ import pandas as pd
 import seaborn as sns
 import random
 from scipy.stats import chi2_contingency
+from statsmodels.stats.multitest import multipletests
 
 from logging_config import get_logger
 
@@ -725,8 +726,10 @@ def plot_global_topic_attributes(df_topics, one_version=False, ai_filter="all"):
             'Bottom 30% Count': bottom_counts
         }).fillna(0).reset_index()
 
-        # 2. Perform Chi-square test for each topic
-        p_values = {}
+# 2. Perform Chi-square test for each topic
+        topics_list = []
+        p_values_list = []
+        
         for _, row in plot_data.iterrows():
             topic = row['topic_labels']
             t_c = int(row['Top 30% Count'])
@@ -739,15 +742,19 @@ def plot_global_topic_attributes(df_topics, one_version=False, ai_filter="all"):
 
             try:
                 chi2, p, dof, ex = chi2_contingency(contingency_table)
-                p_values[topic] = p
             except ValueError:
-                p_values[topic] = 1.0
+                p = 1.0
+                
+            topics_list.append(topic)
+            p_values_list.append(p)
+
+        # Apply Holm Correction
+        reject, pvals_corrected, _, _ = multipletests(p_values_list, alpha=0.05, method='holm')
+        significant_topics = set(t for t, r in zip(topics_list, reject) if r)
 
         # 3. Calculate percentages for plotting
         plot_data['Top 30%'] = (plot_data['Top 30% Count'] / n_top) * 100
-        plot_data['Bottom 30%'] = (
-            plot_data['Bottom 30% Count'] / n_bottom) * 100
-
+        plot_data['Bottom 30%'] = (plot_data['Bottom 30% Count'] / n_bottom) * 100
         plot_data = plot_data.sort_values(by="Top 30%", ascending=False)
 
         plot_data_melted = plot_data.melt(
@@ -764,11 +771,11 @@ def plot_global_topic_attributes(df_topics, one_version=False, ai_filter="all"):
             palette=["#3498db", "#e74c3c"], edgecolor="black", linewidth=0.5
         )
 
-        # 4. HORIZONTAL ASTERISKS
+        # 4. HORIZONTAL ASTERISKS (Updated)
         x_max = ax.get_xlim()[1]
 
         for i, topic in enumerate(plot_data['topic_labels']):
-            if p_values.get(topic, 1.0) < 0.05:
+            if topic in significant_topics:
                 top_val = plot_data.iloc[i]['Top 30%']
                 bot_val = plot_data.iloc[i]['Bottom 30%']
                 max_val = max(top_val, bot_val)
@@ -888,7 +895,10 @@ def plot_topic_pr_metrics_boxplots(df_topics, df_all_versions, one_version=False
             'Bottom 30% Count': bottom_counts
         }).fillna(0).reset_index()
 
-        p_values = {}
+        # Collect p-values
+        topics_list = []
+        p_values_list = []
+        
         for _, row in plot_data.iterrows():
             topic = row['topic_labels']
             t_c = int(row['Top 30% Count'])
@@ -901,9 +911,15 @@ def plot_topic_pr_metrics_boxplots(df_topics, df_all_versions, one_version=False
 
             try:
                 chi2, p, dof, ex = chi2_contingency(contingency_table)
-                p_values[topic] = p
             except ValueError:
-                p_values[topic] = 1.0
+                p = 1.0
+                
+            topics_list.append(topic)
+            p_values_list.append(p)
+
+        # Apply Holm Correction
+        reject, pvals_corrected, _, _ = multipletests(p_values_list, alpha=0.05, method='holm')
+        significant_topics = set(t for t, r in zip(topics_list, reject) if r)
 
         plot_data['Top 30%'] = (plot_data['Top 30% Count'] / n_top) * 100
         plot_data['Bottom 30%'] = (plot_data['Bottom 30% Count'] / n_bottom) * 100
@@ -924,12 +940,11 @@ def plot_topic_pr_metrics_boxplots(df_topics, df_all_versions, one_version=False
             palette=["#2ecc71", "#e74c3c"], edgecolor="black", linewidth=0.5
         )
 
-        # Asterisk styling
+        # Asterisk styling (Updated to use Holm results)
         x_max = ax.get_xlim()[1]
-        alpha = 0.05 / len(plot_data['topic_labels'])
 
         for i, topic in enumerate(plot_data['topic_labels']):
-            if p_values.get(topic, 1.0) < alpha:
+            if topic in significant_topics:
                 top_val = plot_data.iloc[i]['Top 30%']
                 bot_val = plot_data.iloc[i]['Bottom 30%']
                 max_val = max(top_val, bot_val)
@@ -1809,8 +1824,8 @@ if __name__ == "__main__":
         df_static = df_sorted.drop_duplicates(
             subset=["repo", "context_file"], keep="last")
 
-    # print("Deduplicating topics per project...")
-    # df_static_dedup = deduplicate_topics_per_project(df_static)
+    print("Deduplicating topics per project...")
+    df_static_dedup = deduplicate_topics_per_project(df_static)
 
     # df_last_topic = keep_last_topics_per_project(df_sorted)
 
@@ -1830,8 +1845,8 @@ if __name__ == "__main__":
     #     df_static_dedup, one_version=args.one_version, ai_filter=args.ai_filter)
 
     # print("Generating PR-level Metrics Boxplots...")
-    # plot_topic_pr_metrics_boxplots(
-    #     df_static_dedup, df_all_versions, one_version=args.one_version, ai_filter=args.ai_filter)
+    plot_topic_pr_metrics_boxplots(
+        df_static_dedup, df_all_versions, one_version=args.one_version, ai_filter=args.ai_filter)
 
     # print("Generating Global Association Rules via FP-Growth...")
     # run_global_association_rules(
