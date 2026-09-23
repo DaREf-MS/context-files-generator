@@ -157,7 +157,7 @@ def get_suffix(one_version=False, ai_filter="all"):
 
 
 def load_and_filter_metrics():
-    """Loads metrics and applies the PR threshold filter (>= 5 before and >= 5 after)."""
+    """Loads metrics and applies the PR threshold filter (>= 20 after)."""
     try:
         df_metrics = pd.read_csv(DATA_DIR / METRICS_FILE)
 
