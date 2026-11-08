@@ -485,11 +485,9 @@ def plot_global_topic_churn(df_all_versions, ai_filter="all"):
 
             if is_first_version:
                 is_first_version = False
-
-                # If only 1 version exists, skip comparison and don't record transitions
-                if not has_multiple_versions:
-                    prev_topics = curr_topics.copy()
-                    continue
+                prev_topics = curr_topics.copy()
+                # Unconditionally skip churn calculation for the first version
+                continue
                 # If multiple versions exist, we skip the `continue`
                 # and compare against `prev_topics` (which starts as an empty set).
 
@@ -557,7 +555,7 @@ def plot_global_topic_churn(df_all_versions, ai_filter="all"):
     pivot_df['total'] = pivot_df['Added'] + \
         pivot_df['Unchanged'] + pivot_df['Removed']
     pivot_df = pivot_df.sort_values(
-        by='total', ascending=True).set_index('topic')
+        by='Added', ascending=True).set_index('topic')
 
     pivot_df['% Added'] = (pivot_df['Added'] / pivot_df['total']) * 100
     pivot_df['% Unchanged'] = (pivot_df['Unchanged'] / pivot_df['total']) * 100
@@ -591,9 +589,9 @@ def plot_global_topic_churn(df_all_versions, ai_filter="all"):
             f.write(
                 f"Median : {median_val:.2f}% | Closest Topic(s): {', '.join(median_topics)}\n\n")
 
-        f.write("\nPART 2: COMPLETE PER-TOPIC BREAKDOWN (Sorted by Total Actions)\n")
-        f.write("--------------------------------------------------------------\n")
-        for topic_name, row in pivot_df.sort_values(by='total', ascending=False).iterrows():
+        f.write("\nPART 2: COMPLETE PER-TOPIC BREAKDOWN (Sorted by Added Topics)\n")
+        f.write("-------------------------------------------------------------\n")
+        for topic_name, row in pivot_df.sort_values(by='Added', ascending=False).iterrows():
             f.write(f"Topic: {topic_name}\n")
             f.write(f"  Total Actions : {int(row['total'])}\n")
             f.write(f"  % Added       : {row['% Added']:.2f}%\n")
@@ -1844,7 +1842,7 @@ if __name__ == "__main__":
     # plot_global_topic_attributes(
     #     df_static_dedup, one_version=args.one_version, ai_filter=args.ai_filter)
 
-    # print("Generating PR-level Metrics Boxplots...")
+    print("Generating PR-level Metrics Boxplots...")
     plot_topic_pr_metrics_boxplots(
         df_static_dedup, df_all_versions, one_version=args.one_version, ai_filter=args.ai_filter)
 
