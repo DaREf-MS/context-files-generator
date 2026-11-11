@@ -11,7 +11,7 @@ This project uses the dataset for the paper **"A Dataset of Agentic AI Coding To
 we conduct a large-scale empirical study of 8,732 ACF versions collected from 430 engineered, actively maintained, and history-rich software repositories. Our study aims to (1) systematically identify the topics mentioned in the ACF files, (2) investigate how ACFs evolve over time by inspecting whether developers add new topics with the evolution of their projects, (3) examine the association between the characteristics of projects and the presence of an ACF topic. Finally, with the goal to guide developers writing a ACF files, (4) we evaluate using the characteristics of a project the effectiveness of machine learning models in predicting ACF topics for that project. 
 
 ### Dataset Features
-* **4,738** unique GitHub repositories.
+* **430** unique GitHub repositories.
 * Data on **5 major agentic tools**:
   * **Claude Code**
   * **Gemini CLI**
